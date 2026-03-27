@@ -1,0 +1,16 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0x4fF9193756e090795742756E043EdeBf50EEAA47",
+  "deployedAt": "2026-03-27",
+  "contracts": {
+    "WelpToken": "0xDF76BdF11812E93f31BDF6363FE3CD1fE4078A52",
+    "RewardsVault": "0xaCd596F9546A32469E4d7120593e7b54e119351B",
+    "ReviewRegistry": "0xed08ee493161Fb3eA1Fb8935271ed6E85fdD8C0C"
+  },
+  "etherscan": {
+    "WelpToken": "https://sepolia.etherscan.io/address/0xDF76BdF11812E93f31BDF6363FE3CD1fE4078A52",
+    "RewardsVault": "https://sepolia.etherscan.io/address/0xaCd596F9546A32469E4d7120593e7b54e119351B",
+    "ReviewRegistry": "https://sepolia.etherscan.io/address/0xed08ee493161Fb3eA1Fb8935271ed6E85fdD8C0C"
+  }
+}

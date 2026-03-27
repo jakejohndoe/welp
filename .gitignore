@@ -141,6 +141,7 @@ vite.config.ts.timestamp-*
 # Foundry
 contracts/cache/
 contracts/out/
+contracts/broadcast/
 
 # OS
 .DS_Store

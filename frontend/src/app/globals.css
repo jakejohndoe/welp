@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: hsl(36, 50%, 98%);
+  --color-foreground: #1A1A1A;
+  --color-brand-primary: #4A90E2;
+  --color-brand-hover: #357ABD;
+  --color-brand-yellow: #F5D033;
+  --color-brand-yellow-hover: #E6C029;
+  --color-brand-success: #10B981;
+  --font-sans: var(--font-nunito), "Nunito", sans-serif;
+  --font-heading: var(--font-fredoka), "Fredoka", sans-serif;
+}
+
+html, body {
+  background-color: hsl(36, 50%, 98%);
+  color: #1A1A1A;
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
