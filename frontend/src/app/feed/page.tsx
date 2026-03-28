@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { useProfile } from "@/hooks/useProfile";
 import { ReviewText } from "@/components/ReviewText";
+import { TierBadge } from "@/components/TierBadge";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -228,9 +229,10 @@ export default function Feed() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className={`text-sm font-medium ${isOwnReview ? "text-[#4A90E2]" : "text-gray-500 font-mono"}`}>
+                          <span className={`text-sm font-medium flex items-center gap-1.5 ${isOwnReview ? "text-[#4A90E2]" : "text-gray-500 font-mono"}`}>
                             {reviewerName}
-                            {isOwnReview && <span className="ml-1.5 text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
+                            {isOwnReview && <span className="text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
+                            {rep !== undefined && <TierBadge rep={Number(rep)} />}
                           </span>
                           <span className="text-xs text-gray-400">
                             {new Date(
@@ -257,25 +259,6 @@ export default function Feed() {
                     </div>
 
                     <ReviewText ipfsHash={review.ipfsHash} />
-
-                    {rep !== undefined && (
-                      <span
-                        className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          Number(rep) >= 20
-                            ? "bg-amber-100 text-amber-700"
-                            : Number(rep) >= 5
-                            ? "bg-blue-50 text-[#4A90E2]"
-                            : "bg-gray-50 text-gray-400"
-                        }`}
-                      >
-                        Rep: {Number(rep)}
-                        {Number(rep) >= 20
-                          ? " • Elite"
-                          : Number(rep) >= 5
-                          ? " • Premium"
-                          : ""}
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>

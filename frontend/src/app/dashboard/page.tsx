@@ -11,9 +11,10 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import toast from "react-hot-toast";
+import confetti from "canvas-confetti";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -131,7 +132,57 @@ export default function Dashboard() {
     }
   }, [userReviews.length, profile, markReviewed]);
 
-  if (!loaded || !isConnected || !profile) return null;
+  const [showTierUp, setShowTierUp] = useState<{ name: string; reward: number } | null>(null);
+
+  const fireConfetti = useCallback(() => {
+    const end = Date.now() + 1500;
+    const frame = () => {
+      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors: ["#4A90E2", "#10B981", "#F5D033", "#8B5CF6"] });
+      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors: ["#4A90E2", "#10B981", "#F5D033", "#8B5CF6"] });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, []);
+
+  // Tier-up detection
+  useEffect(() => {
+    if (!address || reputation === undefined) return;
+    const rep = Number(reputation);
+    const currentTier = rep >= 20 ? "gold" : rep >= 5 ? "silver" : "bronze";
+    const key = `welp_last_tier_${address.toLowerCase()}`;
+    const lastTier = localStorage.getItem(key) || "bronze";
+
+    const tierOrder = { bronze: 0, silver: 1, gold: 2 };
+    if (tierOrder[currentTier as keyof typeof tierOrder] > tierOrder[lastTier as keyof typeof tierOrder]) {
+      const reward = currentTier === "gold" ? 300 : 200;
+      setShowTierUp({ name: currentTier === "gold" ? "Gold" : "Silver", reward });
+      fireConfetti();
+    }
+    localStorage.setItem(key, currentTier);
+  }, [address, reputation, fireConfetti]);
+
+  if (!loaded || !isConnected || !profile) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-12 h-12 rounded-full bg-gray-100 animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-4 w-64 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-32 rounded-[1.5rem] bg-white border-2 border-gray-100 animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="h-64 rounded-[1.5rem] bg-white border-2 border-gray-100 animate-pulse" />
+          <div className="h-64 rounded-[1.5rem] bg-white border-2 border-gray-100 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   const rep = Number(reputation || 0);
   const tier = getTierInfo(rep);
@@ -338,6 +389,34 @@ export default function Dashboard() {
       <div className="mt-8 text-xs text-gray-400">
         Connected: <span className="font-mono text-gray-500">{address}</span>
       </div>
+
+      {/* Tier-up celebration modal */}
+      {showTierUp && (
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm">
+          <div
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[1.5rem] border-2 border-gray-100 p-10 max-w-sm w-full mx-4 shadow-xl text-center z-[101]"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-50 flex items-center justify-center">
+              <span className="text-4xl">{showTierUp.name === "Gold" ? "🥇" : "🥈"}</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {showTierUp.name} Tier!
+            </h2>
+            <p className="text-gray-500 mb-1">
+              You&apos;ve reached <span className="font-semibold text-gray-900">{showTierUp.name}</span> tier!
+            </p>
+            <p className="text-sm text-gray-400 mb-8">
+              Your reviews now earn {showTierUp.reward} WELP tokens each.
+            </p>
+            <button
+              onClick={() => setShowTierUp(null)}
+              className="w-full py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold transition-all duration-300"
+            >
+              Keep it up!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

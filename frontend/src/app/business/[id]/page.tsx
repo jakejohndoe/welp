@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { ReviewText } from "@/components/ReviewText";
+import { TierBadge } from "@/components/TierBadge";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -85,6 +86,24 @@ export default function BusinessDetail() {
         return { id, businessId: bId, reviewer, rating, ipfsHash, timestamp, upvotes, downvotes };
       })
       .filter((r) => r.businessId === businessId) || [];
+
+  const reviewerAddresses = [...new Set(businessReviews.map((r) => r.reviewer))];
+  const { data: repData } = useReadContracts({
+    contracts: reviewerAddresses.map((addr) => ({
+      address: ADDRESSES.ReviewRegistry,
+      abi: REVIEW_REGISTRY_ABI,
+      functionName: "reputation" as const,
+      args: [addr as `0x${string}`],
+    })),
+    query: { enabled: reviewerAddresses.length > 0 },
+  });
+
+  const reputations: Record<string, number> = {};
+  reviewerAddresses.forEach((addr, i) => {
+    if (repData?.[i]?.status === "success") {
+      reputations[addr] = Number(repData[i].result as bigint);
+    }
+  });
 
   const {
     writeContract: doCheckIn,
@@ -246,9 +265,10 @@ export default function BusinessDetail() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-sm font-medium ${isOwnReview ? "text-[#4A90E2]" : "text-gray-600 font-mono"}`}>
+                      <span className={`text-sm font-medium flex items-center gap-1.5 ${isOwnReview ? "text-[#4A90E2]" : "text-gray-600 font-mono"}`}>
                         {reviewerName}
-                        {isOwnReview && <span className="ml-1.5 text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
+                        {isOwnReview && <span className="text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
+                        {reputations[review.reviewer] !== undefined && <TierBadge rep={reputations[review.reviewer]} />}
                       </span>
                       <span className="text-xs text-gray-400">
                         {new Date(Number(review.timestamp) * 1000).toLocaleDateString()}
