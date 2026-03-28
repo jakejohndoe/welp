@@ -9,6 +9,11 @@ import {
   REWARDS_VAULT_ABI,
 } from "@/lib/contracts";
 import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useProfile } from "@/hooks/useProfile";
+import toast from "react-hot-toast";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -23,13 +28,24 @@ const AVATARS = [
 ];
 
 function getTierInfo(rep: number) {
-  if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", xpMax: 999, barColor: "from-amber-400 to-amber-500" };
-  if (rep >= 5) return { name: "Silver", emoji: "🥈", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", xpMax: 499, barColor: "from-blue-400 to-blue-500" };
-  return { name: "Bronze", emoji: "🟤", color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200", xpMax: 499, barColor: "from-orange-400 to-orange-500" };
+  if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
+  if (rep >= 5) return { name: "Silver", emoji: "🥈", color: "text-blue-600", barColor: "from-blue-400 to-blue-500" };
+  return { name: "Bronze", emoji: "🟤", color: "text-orange-600", barColor: "from-orange-400 to-orange-500" };
 }
 
-export default function Profile() {
+export default function Dashboard() {
   const { address, isConnected } = useAccount();
+  const router = useRouter();
+  const { profile, loaded, markReviewed } = useProfile(address);
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (!isConnected) {
+      router.replace("/welcome");
+    } else if (!profile) {
+      router.replace("/onboarding");
+    }
+  }, [isConnected, profile, loaded, router]);
 
   const { data: welpBalance } = useReadContract({
     address: ADDRESSES.WelpToken,
@@ -83,7 +99,7 @@ export default function Profile() {
       address: ADDRESSES.ReviewRegistry,
       abi: REVIEW_REGISTRY_ABI,
       functionName: "businesses" as const,
-      args: [BigInt(i + 1)],
+      args: [BigInt(i)],
     })),
     query: { enabled: businessCount > 0 },
   });
@@ -106,43 +122,70 @@ export default function Profile() {
       })
       .filter((r) => r.reviewer.toLowerCase() === address?.toLowerCase()) || [];
 
-  if (!isConnected) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Dashboard
-        </h1>
-        <p className="text-gray-500 text-lg">
-          Connect your wallet to view your dashboard.
-        </p>
-      </div>
-    );
-  }
+  const uniqueBusinesses = new Set(userReviews.map((r) => r.businessId.toString())).size;
+
+  // Mark profile as reviewed if they have reviews
+  useEffect(() => {
+    if (userReviews.length > 0 && profile && !profile.hasReviewed) {
+      markReviewed();
+    }
+  }, [userReviews.length, profile, markReviewed]);
+
+  if (!loaded || !isConnected || !profile) return null;
 
   const rep = Number(reputation || 0);
   const tier = getTierInfo(rep);
   const balance = welpBalance ? formatUnits(welpBalance as bigint, 18) : "0";
   const balanceNum = Number(balance);
 
-  const t2Threshold =
-    tierData?.[0]?.status === "success" ? Number(tierData[0].result) : 5;
   const t3Threshold =
     tierData?.[1]?.status === "success" ? Number(tierData[1].result) : 20;
 
-  // Pick a deterministic avatar based on address
-  const avatarIndex = address ? parseInt(address.slice(2, 4), 16) % AVATARS.length : 0;
+  const showGettingStarted = !profile.hasReviewed && userReviews.length === 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back! 👋
-        </h1>
-        <p className="text-gray-500 mt-1">
-          You&apos;ve earned {balanceNum.toFixed(0)} points. Keep exploring to earn more!
-        </p>
+      <div className="flex items-center gap-4 mb-8">
+        <Image
+          src={profile.avatar}
+          alt="avatar"
+          width={48}
+          height={48}
+          className="rounded-full"
+        />
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Welcome back, {profile.displayName}! 👋
+          </h1>
+          <p className="text-gray-500 mt-0.5">
+            You&apos;ve earned {balanceNum.toFixed(0)} WELP tokens. Keep exploring to earn more!
+          </p>
+        </div>
       </div>
+
+      {/* Getting Started Card — disappears after first review */}
+      {showGettingStarted && (
+        <div className="rounded-[1.5rem] bg-gradient-to-r from-blue-50 to-amber-50 border-2 border-blue-100 p-6 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#F5D033] flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">⭐</span>
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">Getting Started</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Complete your first review to earn WELP tokens! Visit a business, check in, and share your experience.
+              </p>
+            </div>
+            <Link
+              href="/businesses"
+              className="px-5 py-2.5 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white text-sm font-semibold transition-all duration-300 flex-shrink-0"
+            >
+              Find a Business
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Tier Progress */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
@@ -158,64 +201,47 @@ export default function Profile() {
           <span className="text-sm text-gray-400">{rep} XP / {t3Threshold}</span>
         </div>
         <div className="text-sm text-gray-400">
-          Badges: <span className="text-gray-300 italic">No badges yet</span>
+          {rep >= 20 ? "Elite Reviewer" : rep >= 5 ? "Rising Reviewer" : "New Reviewer"}
         </div>
       </div>
 
-      {/* 4 Stat Cards — matches v1 dashboard layout */}
+      {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Total Visits */}
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-600">📍 Total Visits</span>
-            <span className="ml-auto w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-[10px] text-green-600">✓</span>
+            <span className="text-sm text-gray-600">📍 Businesses Reviewed</span>
           </div>
-          <p className="text-3xl font-bold text-[#4A90E2]">{userReviews.length}</p>
-          <p className="text-sm text-gray-400 mt-1">Places visited</p>
+          <p className="text-3xl font-bold text-[#4A90E2]">{uniqueBusinesses}</p>
+          <p className="text-sm text-gray-400 mt-1">Unique places</p>
         </div>
 
-        {/* Reviews Written */}
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">✏️ Reviews Written</span>
-            <span className="ml-auto w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[10px] text-blue-600">✓</span>
           </div>
           <p className="text-3xl font-bold text-[#4A90E2]">{userReviews.length}</p>
-          <p className="text-sm text-gray-400 mt-1">Helpful reviews</p>
+          <p className="text-sm text-gray-400 mt-1">On-chain reviews</p>
         </div>
 
-        {/* Points Balance */}
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-600">🏅 Points Balance</span>
+            <span className="text-sm text-gray-600">🪙 WELP Balance</span>
           </div>
-          {/* Donut-style circle */}
-          <div className="flex justify-center my-2">
-            <div className="w-16 h-16 rounded-full border-4 border-gray-100 flex items-center justify-center">
-              <span className="text-lg font-bold text-gray-900">{balanceNum.toFixed(0)}</span>
-            </div>
-          </div>
-          <p className="text-sm text-gray-400 text-center mt-1">Reward unlocked!</p>
+          <p className="text-3xl font-bold text-[#4A90E2]">{balanceNum.toFixed(0)}</p>
+          <p className="text-sm text-gray-400 mt-1">{balanceNum > 0 ? "WELP tokens earned" : "Earn by writing reviews"}</p>
         </div>
 
-        {/* Explore */}
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-600">🔍 Explore</span>
+            <span className="text-sm text-gray-600">⭐ Reputation</span>
           </div>
-          <Link href="/" className="text-xl font-semibold text-purple-600 hover:underline">
-            Discover
-          </Link>
-          <p className="text-sm text-gray-400 mt-1">Find new businesses</p>
-          <Link href="/" className="text-sm text-[#4A90E2] hover:underline mt-2 inline-block">
-            Browse Local Businesses
-          </Link>
+          <p className="text-3xl font-bold text-[#4A90E2]">{rep}</p>
+          <p className="text-sm text-gray-400 mt-1">{tier.name} tier</p>
         </div>
       </div>
 
       {/* Recent Activity + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {/* Recent Activity */}
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
           {userReviews.length === 0 ? (
@@ -243,37 +269,38 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Quick Actions */}
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-3">
-            <Link
-              href="/"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] transition-all text-center"
+            <button
+              onClick={() => toast("QR scanning coming soon!", { icon: "📱" })}
+              className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-gray-50 border-2 border-gray-100 text-center cursor-default"
             >
-              <span className="text-lg">📱</span>
-              <span className="text-sm font-semibold text-gray-900">Scan QR Code</span>
-            </Link>
+              <span className="text-lg text-gray-300">📱</span>
+              <span className="text-sm font-medium text-gray-400">Scan QR Code</span>
+              <span className="text-[10px] text-gray-400">Coming Soon</span>
+            </button>
             <Link
-              href="/"
+              href="/businesses"
               className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#4A90E2] transition-all text-center"
             >
               <span className="text-lg">✍️</span>
               <span className="text-sm font-medium text-gray-700">Write Review</span>
             </Link>
             <Link
-              href="/"
+              href="/businesses"
               className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#4A90E2] transition-all text-center"
             >
               <span className="text-lg">📍</span>
               <span className="text-sm font-medium text-gray-700">Find Places</span>
             </Link>
-            <button
+            <Link
+              href="/feed"
               className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#4A90E2] transition-all text-center"
             >
-              <span className="text-lg">⚙️</span>
-              <span className="text-sm font-medium text-gray-700">Settings</span>
-            </button>
+              <span className="text-lg">📰</span>
+              <span className="text-sm font-medium text-gray-700">View Feed</span>
+            </Link>
           </div>
         </div>
       </div>
@@ -290,7 +317,7 @@ export default function Profile() {
             return (
               <Link
                 key={i}
-                href={`/business/${i + 1}`}
+                href={`/business/${i}`}
                 className="flex-shrink-0 w-40 rounded-xl border-2 border-gray-100 p-3 hover:border-[#4A90E2] transition-all"
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -300,10 +327,7 @@ export default function Profile() {
                     <p className="text-xs text-gray-400 truncate">{category}</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-amber-500">★ 4.8</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">0.5 mi</span>
-                </div>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-[#4A90E2]">View →</span>
               </Link>
             );
           })}

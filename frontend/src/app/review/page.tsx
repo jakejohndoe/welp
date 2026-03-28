@@ -41,7 +41,7 @@ function WriteReview() {
   const [uploading, setUploading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const { writeContract, data: txHash, isPending } = useWriteContract();
+  const { writeContract, data: txHash, isPending, error: txError } = useWriteContract();
   const { isSuccess: confirmed } = useWaitForTransactionReceipt({
     hash: txHash,
   });
@@ -74,6 +74,23 @@ function WriteReview() {
       fireConfetti();
     }
   }, [confirmed, fireConfetti]);
+
+  useEffect(() => {
+    if (txError) {
+      const msg = (txError as Error).message || "Transaction failed";
+      if (msg.includes("NotCheckedIn")) {
+        toast.error("You must check in at this business before reviewing.");
+      } else if (msg.includes("ReviewCooldown")) {
+        toast.error("You already reviewed this business recently. Wait 48 hours.");
+      } else if (msg.includes("InvalidRating")) {
+        toast.error("Rating must be between 1 and 5.");
+      } else if (msg.includes("User rejected") || msg.includes("User denied")) {
+        toast.error("Transaction was cancelled.");
+      } else {
+        toast.error("Transaction failed. Please try again.");
+      }
+    }
+  }, [txError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,13 +152,21 @@ function WriteReview() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Review Submitted!
           </h2>
-          <p className="text-gray-500 text-lg mb-8">You earned $1.00 WLP</p>
-          <button
-            onClick={() => router.push(`/business/${businessId}`)}
-            className="w-full py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold transition-all duration-300"
-          >
-            Back to Business
-          </button>
+          <p className="text-gray-500 text-lg mb-8">You earned WELP tokens!</p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => router.push(`/business/${businessId}`)}
+              className="w-full py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold transition-all duration-300"
+            >
+              Back to Business
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full py-3 rounded-xl border-2 border-gray-100 text-gray-600 font-medium hover:bg-gray-50 transition-all"
+            >
+              View Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -164,7 +189,7 @@ function WriteReview() {
       <div className="max-w-2xl mx-auto px-6 py-16 text-center">
         <p className="text-gray-500">No business selected.</p>
         <Link
-          href="/"
+          href="/businesses"
           className="text-[#4A90E2] hover:underline mt-4 inline-block"
         >
           Browse businesses
@@ -248,7 +273,7 @@ function WriteReview() {
               ? "Uploading to IPFS..."
               : isPending
               ? "Confirm in wallet..."
-              : "Submit & Earn $1.00"}
+              : "Submit Review"}
           </button>
         </form>
       </div>

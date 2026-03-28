@@ -9,9 +9,12 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
 import { ADDRESSES, REVIEW_REGISTRY_ABI } from "@/lib/contracts";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
+import { useProfile } from "@/hooks/useProfile";
+import { ReviewText } from "@/components/ReviewText";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -38,6 +41,8 @@ export default function BusinessDetail() {
   const params = useParams();
   const businessId = BigInt(params.id as string);
   const { address, isConnected } = useAccount();
+  const queryClient = useQueryClient();
+  const { profile } = useProfile(address);
 
   const { data: business } = useReadContract({
     address: ADDRESSES.ReviewRegistry,
@@ -52,7 +57,7 @@ export default function BusinessDetail() {
     functionName: "nextReviewId",
   });
 
-  const { data: lastCheckInTime } = useReadContract({
+  const { data: lastCheckInTime, queryKey: checkInQueryKey } = useReadContract({
     address: ADDRESSES.ReviewRegistry,
     abi: REVIEW_REGISTRY_ABI,
     functionName: "lastCheckIn",
@@ -91,11 +96,13 @@ export default function BusinessDetail() {
     hash: checkInHash,
   });
 
+  // After check-in confirms, invalidate the lastCheckIn query so isCheckedIn updates
   useEffect(() => {
     if (checkInConfirmed) {
       toast.success("Checked in! You can now write a review.");
+      queryClient.invalidateQueries({ queryKey: checkInQueryKey });
     }
-  }, [checkInConfirmed]);
+  }, [checkInConfirmed, queryClient, checkInQueryKey]);
 
   const handleCheckIn = () => {
     doCheckIn({
@@ -106,10 +113,12 @@ export default function BusinessDetail() {
     });
   };
 
-  const isCheckedIn =
+  // Use both the contract read AND the confirmed receipt as signals
+  const isCheckedInFromContract =
     lastCheckInTime !== undefined &&
     Number(lastCheckInTime) > 0 &&
     Date.now() / 1000 - Number(lastCheckInTime) < 86400;
+  const isCheckedIn = isCheckedInFromContract || checkInConfirmed;
 
   if (!business) {
     return (
@@ -127,19 +136,19 @@ export default function BusinessDetail() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <p className="text-gray-500">Business not found.</p>
-        <Link href="/" className="text-[#4A90E2] hover:underline mt-4 inline-block">
+        <Link href="/businesses" className="text-[#4A90E2] hover:underline mt-4 inline-block">
           Back to businesses
         </Link>
       </div>
     );
   }
 
-  const avatarIdx = (Number(params.id) - 1) % AVATARS.length;
+  const avatarIdx = Number(params.id) % AVATARS.length;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Link
-        href="/"
+        href="/businesses"
         className="text-sm text-gray-400 hover:text-[#4A90E2] mb-6 inline-flex items-center gap-1 transition"
       >
         <span>&larr;</span> All Businesses
@@ -161,11 +170,16 @@ export default function BusinessDetail() {
                 <p className="text-gray-500 mt-1">{category}</p>
                 <p className="text-sm text-gray-400">{location}</p>
                 <div className="mt-2">
-                  <StarRating rating={5} />
-                  <span className="text-sm text-gray-400 ml-2">
-                    {businessReviews.length} review
-                    {businessReviews.length !== 1 ? "s" : ""}
-                  </span>
+                  {businessReviews.length > 0 ? (
+                    <>
+                      <StarRating rating={Math.round(businessReviews.reduce((sum, r) => sum + r.rating, 0) / businessReviews.length)} />
+                      <span className="text-sm text-gray-400 ml-2">
+                        {(businessReviews.reduce((sum, r) => sum + r.rating, 0) / businessReviews.length).toFixed(1)} ({businessReviews.length} review{businessReviews.length !== 1 ? "s" : ""})
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-gray-400">No ratings yet</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -216,7 +230,9 @@ export default function BusinessDetail() {
         <div className="space-y-4">
           {businessReviews.map((review) => {
             const netVotes = Number(review.upvotes) - Number(review.downvotes);
-            const reviewerAvatar = parseInt(review.reviewer.slice(2, 4), 16) % AVATARS.length;
+            const isOwnReview = address && review.reviewer.toLowerCase() === address.toLowerCase();
+            const reviewerAvatar = isOwnReview && profile ? profile.avatar : AVATARS[parseInt(review.reviewer.slice(2, 4), 16) % AVATARS.length];
+            const reviewerName = isOwnReview && profile ? profile.displayName : `${review.reviewer.slice(0, 6)}...${review.reviewer.slice(-4)}`;
             return (
               <div
                 key={Number(review.id)}
@@ -224,40 +240,44 @@ export default function BusinessDetail() {
               >
                 <div className="flex items-start gap-4">
                   <img
-                    src={AVATARS[reviewerAvatar]}
+                    src={reviewerAvatar}
                     alt=""
                     className="w-10 h-10 rounded-full flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-600 font-mono">
-                        {review.reviewer.slice(0, 6)}...{review.reviewer.slice(-4)}
+                      <span className={`text-sm font-medium ${isOwnReview ? "text-[#4A90E2]" : "text-gray-600 font-mono"}`}>
+                        {reviewerName}
+                        {isOwnReview && <span className="ml-1.5 text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
                       </span>
                       <span className="text-xs text-gray-400">
                         {new Date(Number(review.timestamp) * 1000).toLocaleDateString()}
                       </span>
                     </div>
                     <StarRating rating={review.rating} />
-                    <div className="flex items-center gap-4 mt-3 text-sm">
-                      <span className="text-gray-400">
-                        ▲ {Number(review.upvotes)}
-                      </span>
-                      <span className="text-gray-400">
-                        ▼ {Number(review.downvotes)}
-                      </span>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          netVotes > 0
-                            ? "bg-blue-50 text-[#4A90E2]"
-                            : netVotes < 0
-                            ? "bg-red-50 text-red-500"
-                            : "bg-gray-50 text-gray-400"
-                        }`}
-                      >
-                        {netVotes > 0 ? "+" : ""}
-                        {netVotes}
-                      </span>
-                    </div>
+                    <ReviewText ipfsHash={review.ipfsHash} />
+                    {(Number(review.upvotes) + Number(review.downvotes) > 0) && (
+                      <div className="flex items-center gap-4 mt-3 text-sm">
+                        <span className="text-gray-400">
+                          ▲ {Number(review.upvotes)}
+                        </span>
+                        <span className="text-gray-400">
+                          ▼ {Number(review.downvotes)}
+                        </span>
+                        <span
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            netVotes > 0
+                              ? "bg-blue-50 text-[#4A90E2]"
+                              : netVotes < 0
+                              ? "bg-red-50 text-red-500"
+                              : "bg-gray-50 text-gray-400"
+                          }`}
+                        >
+                          {netVotes > 0 ? "+" : ""}
+                          {netVotes}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

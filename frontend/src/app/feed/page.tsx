@@ -11,6 +11,8 @@ import { ADDRESSES, REVIEW_REGISTRY_ABI } from "@/lib/contracts";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { useProfile } from "@/hooks/useProfile";
+import { ReviewText } from "@/components/ReviewText";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -82,6 +84,9 @@ function VoteButton({
 }
 
 export default function Feed() {
+  const { address } = useAccount();
+  const { profile } = useProfile(address);
+
   const { data: nextReviewId } = useReadContract({
     address: ADDRESSES.ReviewRegistry,
     abi: REVIEW_REGISTRY_ABI,
@@ -112,7 +117,7 @@ export default function Feed() {
       address: ADDRESSES.ReviewRegistry,
       abi: REVIEW_REGISTRY_ABI,
       functionName: "businesses" as const,
-      args: [BigInt(i + 1)],
+      args: [BigInt(i)],
     })),
     query: { enabled: businessCount > 0 },
   });
@@ -171,7 +176,7 @@ export default function Feed() {
         <div className="text-center py-16 text-gray-400 bg-white rounded-[1.5rem] border-2 border-gray-100">
           <p className="text-lg">No reviews yet</p>
           <p className="text-sm mt-1">
-            <Link href="/" className="text-[#4A90E2] hover:underline">
+            <Link href="/businesses" className="text-[#4A90E2] hover:underline">
               Check in to a business
             </Link>{" "}
             to write the first one!
@@ -182,7 +187,9 @@ export default function Feed() {
           {reviews.map((review) => {
             const netVotes = Number(review.upvotes) - Number(review.downvotes);
             const rep = reputations[review.reviewer];
-            const avatarIdx = parseInt(review.reviewer.slice(2, 4), 16) % AVATARS.length;
+            const isOwnReview = address && review.reviewer.toLowerCase() === address.toLowerCase();
+            const reviewerAvatar = isOwnReview && profile ? profile.avatar : AVATARS[parseInt(review.reviewer.slice(2, 4), 16) % AVATARS.length];
+            const reviewerName = isOwnReview && profile ? profile.displayName : `${review.reviewer.slice(0, 6)}...${review.reviewer.slice(-4)}`;
 
             return (
               <div
@@ -193,17 +200,21 @@ export default function Feed() {
                   {/* Vote column */}
                   <div className="flex flex-col items-center gap-1 pt-1">
                     <VoteButton reviewId={review.id} type="upvote" />
-                    <span
-                      className={`text-sm font-bold tabular-nums ${
-                        netVotes > 0
-                          ? "text-[#4A90E2]"
-                          : netVotes < 0
-                          ? "text-red-500"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {netVotes}
-                    </span>
+                    {(Number(review.upvotes) + Number(review.downvotes) > 0) ? (
+                      <span
+                        className={`text-sm font-bold tabular-nums ${
+                          netVotes > 0
+                            ? "text-[#4A90E2]"
+                            : netVotes < 0
+                            ? "text-red-500"
+                            : "text-gray-300"
+                        }`}
+                      >
+                        {netVotes}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-gray-200">·</span>
+                    )}
                     <VoteButton reviewId={review.id} type="downvote" />
                   </div>
 
@@ -211,15 +222,15 @@ export default function Feed() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <img
-                        src={AVATARS[avatarIdx]}
+                        src={reviewerAvatar}
                         alt=""
                         className="w-8 h-8 rounded-full"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-500 font-mono">
-                            {review.reviewer.slice(0, 6)}...
-                            {review.reviewer.slice(-4)}
+                          <span className={`text-sm font-medium ${isOwnReview ? "text-[#4A90E2]" : "text-gray-500 font-mono"}`}>
+                            {reviewerName}
+                            {isOwnReview && <span className="ml-1.5 text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
                           </span>
                           <span className="text-xs text-gray-400">
                             {new Date(
@@ -244,6 +255,8 @@ export default function Feed() {
                         {"★".repeat(5 - review.rating)}
                       </span>
                     </div>
+
+                    <ReviewText ipfsHash={review.ipfsHash} />
 
                     {rep !== undefined && (
                       <span
