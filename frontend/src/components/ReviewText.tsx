@@ -9,6 +9,13 @@ export function ReviewText({ ipfsHash }: { ipfsHash: string }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    // Handle placeholder/invalid IPFS hashes
+    if (!ipfsHash || ipfsHash.startsWith('QmPlaceholder')) {
+      setText("Review submitted successfully (content not stored on IPFS)");
+      setLoading(false);
+      return;
+    }
+
     const url = ipfsUrl(ipfsHash);
     if (!url) {
       setLoading(false);

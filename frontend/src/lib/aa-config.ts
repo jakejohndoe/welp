@@ -110,16 +110,11 @@ export async function createGaslessClient(
       client: publicClient,
     });
 
-    console.log("✅ ZeroDev Kernel client created successfully");
-    console.log("Smart Account Address:", kernelAccount.address);
+    console.log("✅ AA ready");
 
     return kernelClient;
   } catch (error) {
     console.error("Failed to create ZeroDev Kernel client:", error);
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
     return null;
   }
 }

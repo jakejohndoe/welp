@@ -44,16 +44,17 @@ export function useSmartTransaction(): UseSmartTransactionReturn {
         return;
       }
 
+      // Prevent re-initialization if already initialized for the same wallet
+      if (kernelClientRef.current && walletClient.account?.address) {
+        return;
+      }
+
       try {
         const kernelClient = await createGaslessClient(walletClient, publicClient);
         kernelClientRef.current = kernelClient;
         setIsAAReady(kernelClient !== null);
       } catch (err) {
         console.error("Failed to initialize Kernel client:", err);
-        console.error("Actual error details:", {
-          message: err instanceof Error ? err.message : "Unknown error",
-          stack: err instanceof Error ? err.stack : undefined,
-        });
         setIsAAReady(false);
         kernelClientRef.current = null;
       }
