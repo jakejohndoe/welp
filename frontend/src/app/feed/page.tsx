@@ -14,6 +14,8 @@ import Link from "next/link";
 import { useProfile } from "@/hooks/useProfile";
 import { ReviewText } from "@/components/ReviewText";
 import { TierBadge } from "@/components/TierBadge";
+import { useSmartTransaction } from "@/hooks/useSmartTransaction";
+import { useState } from "react";
 
 const AVATARS = [
   "/avatars/basic-woman-avatar.png",
@@ -35,6 +37,7 @@ function VoteButton({
   type: "upvote" | "downvote";
 }) {
   const { address } = useAccount();
+  const [isVoting, setIsVoting] = useState(false);
 
   const { data: alreadyVoted } = useReadContract({
     address: ADDRESSES.ReviewRegistry,
@@ -44,43 +47,124 @@ function VoteButton({
     query: { enabled: !!address },
   });
 
-  const { writeContract, data: hash, isPending } = useWriteContract();
-  const { isSuccess } = useWaitForTransactionReceipt({ hash });
+  // Standard wagmi for fallback
+  const { writeContract, data: hash, isPending: isPendingStandard } = useWriteContract();
+  const { isSuccess: isSuccessStandard } = useWaitForTransactionReceipt({ hash });
+
+  // ZeroDev gasless transactions
+  const {
+    sendGaslessTransaction,
+    isPending: isPendingGasless,
+    isSuccess: isSuccessGasless,
+    isAAReady,
+    error: gaslessError,
+    reset: resetGasless,
+  } = useSmartTransaction();
+
+  const isPending = isPendingStandard || isPendingGasless || isVoting;
+  const isSuccess = isSuccessStandard || isSuccessGasless;
 
   useEffect(() => {
     if (isSuccess) {
+      const method = isSuccessGasless ? "(gas-free)" : "";
       toast.success(
-        `${type === "upvote" ? "Upvote" : "Downvote"} recorded on-chain!`
+        `${type === "upvote" ? "Upvote" : "Downvote"} recorded on-chain! ${method}`
       );
     }
-  }, [isSuccess, type]);
+  }, [isSuccess, isSuccessGasless, type]);
+
+  // Reset gasless state when transaction is complete
+  useEffect(() => {
+    if (isSuccessGasless && !isPendingGasless) {
+      setTimeout(() => resetGasless(), 2000);
+    }
+  }, [isSuccessGasless, isPendingGasless, resetGasless]);
 
   const voted = isSuccess || alreadyVoted === true;
 
-  return (
-    <button
-      onClick={() =>
+  const handleVote = async () => {
+    // Prevent multiple concurrent votes
+    if (isPending) return;
+
+    setIsVoting(true);
+
+    try {
+      if (isAAReady) {
+        // Try gasless first - wait for full resolution
+        try {
+          await sendGaslessTransaction({
+            address: ADDRESSES.ReviewRegistry,
+            abi: REVIEW_REGISTRY_ABI,
+            functionName: type,
+            args: [reviewId],
+          });
+          // Success - no fallback needed
+        } catch (error) {
+          console.error("Gasless transaction failed:", error);
+
+          // Check if this is a user rejection (don't fallback)
+          const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+          const isUserRejection = errorMessage.includes('user rejected') ||
+                                 errorMessage.includes('user denied') ||
+                                 errorMessage.includes('user cancelled') ||
+                                 errorMessage.includes('rejected');
+
+          if (isUserRejection) {
+            toast.error('Vote cancelled');
+            return;
+          }
+
+          // For other errors, fallback to standard transaction
+          console.log("Falling back to standard transaction");
+          writeContract({
+            address: ADDRESSES.ReviewRegistry,
+            abi: REVIEW_REGISTRY_ABI,
+            functionName: type,
+            args: [reviewId],
+          });
+        }
+      } else {
+        // Use standard wagmi transaction
         writeContract({
           address: ADDRESSES.ReviewRegistry,
           abi: REVIEW_REGISTRY_ABI,
           functionName: type,
           args: [reviewId],
-        })
+        });
       }
-      disabled={!address || isPending || alreadyVoted === true}
-      className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-sm font-bold disabled:cursor-default ${
-        type === "upvote"
-          ? voted
-            ? "bg-blue-100 text-[#4A90E2]"
-            : "text-gray-300 hover:bg-blue-50 hover:text-[#4A90E2]"
-          : voted
-          ? "bg-red-100 text-red-500"
-          : "text-gray-300 hover:bg-red-50 hover:text-red-500"
-      }`}
-      title={alreadyVoted ? "Already voted" : type}
-    >
-      {type === "upvote" ? "▲" : "▼"}
-    </button>
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={handleVote}
+        disabled={!address || isPending || alreadyVoted === true}
+        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-sm font-bold disabled:cursor-default ${
+          type === "upvote"
+            ? voted
+              ? "bg-blue-100 text-[#4A90E2]"
+              : "text-gray-300 hover:bg-blue-50 hover:text-[#4A90E2]"
+            : voted
+            ? "bg-red-100 text-red-500"
+            : "text-gray-300 hover:bg-red-50 hover:text-red-500"
+        }`}
+        title={
+          alreadyVoted
+            ? "Already voted"
+            : isAAReady
+            ? `${type} (gas-free)`
+            : type
+        }
+      >
+        {type === "upvote" ? "▲" : "▼"}
+      </button>
+      {isAAReady && !voted && (
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white" title="Gas-free enabled" />
+      )}
+    </div>
   );
 }
 
