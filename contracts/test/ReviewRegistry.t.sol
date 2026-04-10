@@ -122,6 +122,65 @@ contract ReviewRegistryTest is Test {
         registry.checkIn(0);
     }
 
+    function test_checkIn_revertCooldown() public {
+        // First check-in should succeed
+        vm.prank(alice);
+        registry.checkIn(0);
+
+        // Second check-in within 1 hour should fail
+        vm.prank(alice);
+        vm.expectRevert(ReviewRegistry.CheckInCooldown.selector);
+        registry.checkIn(0);
+
+        // Advance time by 30 minutes, still should fail
+        vm.warp(block.timestamp + 30 minutes);
+        vm.prank(alice);
+        vm.expectRevert(ReviewRegistry.CheckInCooldown.selector);
+        registry.checkIn(0);
+
+        // Advance time to exactly 1 hour, should succeed
+        vm.warp(block.timestamp + 30 minutes); // Total 1 hour
+        vm.prank(alice);
+        registry.checkIn(0);
+    }
+
+    function test_checkIn_allowAfterCooldown() public {
+        // First check-in
+        vm.prank(alice);
+        registry.checkIn(0);
+        uint256 firstCheckIn = block.timestamp;
+
+        // Advance time past cooldown
+        vm.warp(block.timestamp + 1 hours + 1);
+
+        // Second check-in should succeed
+        vm.prank(alice);
+        registry.checkIn(0);
+        uint256 secondCheckIn = block.timestamp;
+
+        assertGt(secondCheckIn, firstCheckIn);
+        assertEq(registry.lastCheckIn(0, alice), secondCheckIn);
+    }
+
+    function test_checkIn_cooldownPerBusiness() public {
+        // Add another business
+        vm.prank(owner);
+        registry.addBusiness("Biz2", "Bar", "Minneapolis, MN");
+
+        // Alice checks in to business 0
+        vm.prank(alice);
+        registry.checkIn(0);
+
+        // Alice can immediately check in to business 1 (different business)
+        vm.prank(alice);
+        registry.checkIn(1);
+
+        // But cannot check in to business 0 again within cooldown
+        vm.prank(alice);
+        vm.expectRevert(ReviewRegistry.CheckInCooldown.selector);
+        registry.checkIn(0);
+    }
+
     // ═══════════════ submitReview ═══════════════
 
     function test_submitReview() public {
@@ -194,7 +253,10 @@ contract ReviewRegistryTest is Test {
     function test_submitReview_revertCooldown() public {
         _checkInAndReview(alice, 0, 3);
 
-        // check in again right away
+        // Wait for check-in cooldown to pass (1 hour), but not review cooldown (48 hours)
+        vm.warp(block.timestamp + 1 hours + 1);
+
+        // check in again after check-in cooldown
         vm.startPrank(alice);
         registry.checkIn(0);
         vm.expectRevert(ReviewRegistry.ReviewCooldown.selector);
@@ -288,6 +350,26 @@ contract ReviewRegistryTest is Test {
         vm.prank(alice);
         vm.expectRevert(ReviewRegistry.ReviewNotFound.selector);
         registry.upvote(999);
+    }
+
+    function test_vote_revertCannotVoteOwnReview() public {
+        _checkInAndReview(alice, 0, 4);
+
+        // Alice tries to upvote her own review
+        vm.prank(alice);
+        vm.expectRevert(ReviewRegistry.CannotVoteOwnReview.selector);
+        registry.upvote(0);
+
+        // Alice tries to downvote her own review
+        vm.prank(alice);
+        vm.expectRevert(ReviewRegistry.CannotVoteOwnReview.selector);
+        registry.downvote(0);
+
+        // Verify review hasn't been voted on
+        (,,,,,,uint256 upvotes, uint256 downvotes) = registry.reviews(0);
+        assertEq(upvotes, 0);
+        assertEq(downvotes, 0);
+        assertEq(registry.reputation(alice), 0);
     }
 
     function test_vote_revertWhenPaused() public {

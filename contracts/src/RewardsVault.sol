@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IRewardsVault} from "./interfaces/IRewardsVault.sol";
 
 interface IWelpToken {
     function mint(address to, uint256 amount) external;
@@ -12,14 +13,14 @@ interface IReviewRegistry {
     function reputation(address reviewer) external view returns (int256);
 }
 
-contract RewardsVault is Ownable2Step, ReentrancyGuard {
+contract RewardsVault is IRewardsVault, Ownable2Step, ReentrancyGuard {
     // ──────────────────── State ────────────────────
 
     IWelpToken public welpToken;
     IReviewRegistry public reviewRegistry;
 
     /// @dev Tier thresholds (reputation must be >= threshold to qualify)
-    int256 public tier1Threshold; // base tier (below this is impossible; everyone qualifies)
+    int256 public constant tier1Threshold = 0; // base tier (below this is impossible; everyone qualifies)
     int256 public tier2Threshold;
     int256 public tier3Threshold;
 

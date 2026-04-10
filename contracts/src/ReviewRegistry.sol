@@ -4,10 +4,7 @@ pragma solidity 0.8.20;
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-interface IRewardsVault {
-    function distributeReward(address reviewer) external;
-}
+import {IRewardsVault} from "./interfaces/IRewardsVault.sol";
 
 contract ReviewRegistry is Ownable2Step, Pausable, ReentrancyGuard {
     // ──────────────────── Structs ────────────────────
@@ -84,6 +81,8 @@ contract ReviewRegistry is Ownable2Step, Pausable, ReentrancyGuard {
     error ReviewNotFound();
     error ZeroAddress();
     error RewardsVaultNotSet();
+    error CannotVoteOwnReview();
+    error CheckInCooldown();
 
     // ──────────────────── Constructor ────────────────────
 
@@ -119,6 +118,12 @@ contract ReviewRegistry is Ownable2Step, Pausable, ReentrancyGuard {
 
     function checkIn(uint256 businessId) external whenNotPaused {
         if (!businesses[businessId].exists) revert BusinessNotFound();
+
+        // Check if user is within cooldown period (1 hour)
+        if (lastCheckIn[businessId][msg.sender] != 0 &&
+            block.timestamp < lastCheckIn[businessId][msg.sender] + 1 hours) {
+            revert CheckInCooldown();
+        }
 
         lastCheckIn[businessId][msg.sender] = block.timestamp;
         emit CheckedIn(businessId, msg.sender, block.timestamp);
@@ -179,6 +184,7 @@ contract ReviewRegistry is Ownable2Step, Pausable, ReentrancyGuard {
         Review storage r = reviews[reviewId];
         if (r.timestamp == 0) revert ReviewNotFound();
         if (hasVoted[reviewId][msg.sender]) revert AlreadyVoted();
+        if (r.reviewer == msg.sender) revert CannotVoteOwnReview();
 
         hasVoted[reviewId][msg.sender] = true;
 
