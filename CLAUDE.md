@@ -65,7 +65,31 @@ frontend/.env.local (Next.js):
 - NEXT_PUBLIC_PINATA_JWT
 - NEXT_PUBLIC_PINATA_GATEWAY
 
+## Key Env Vars (ZeroDev AA)
+
+- NEXT_PUBLIC_ZERODEV_PROJECT_ID -- just the UUID
+- NEXT_PUBLIC_ZERODEV_BUNDLER_URL -- full v3 URL with chain ID
+- NEXT_PUBLIC_ZERODEV_PAYMASTER_URL -- full v3 URL with chain ID
+- NEXT_PUBLIC_ZERODEV_API_KEY -- personal API key for auth
+
 NEVER mix these up. Next.js only reads from frontend/.env.local. Foundry only reads from root .env.
+
+## Current Status (April 9 2026)
+
+- AA (ERC-4337) is WORKING -- gasless upvotes/downvotes on Sepolia feed page
+- ZeroDev Kernel v3.1 + EntryPoint v0.7 + permissionless 0.3.4
+- @zerodev/sdk 5.5.10 direct (NOT @zerodev/wagmi -- incompatible with wagmi 3.6)
+- Smart Account: 0xAb76279Dd2beb13edD2209D47adc5E18B93a9fB4
+- 74/74 Foundry tests passing
+- Build clean, no errors
+
+## ZeroDev Integration Notes
+
+- Must use v3 API URLs (SDK defaults to v2 internally -- override with explicit URLs)
+- API key required in Authorization: Bearer header on both bundler and paymaster transports
+- Gas sponsorship policy must be enabled in ZeroDev dashboard
+- Free tier = testnets only. Base mainnet will need paid plan or self-funded paymaster
+- Kernel client caches in useRef -- should only initialize once per wallet connection
 
 ## Lessons Learned (update after every correction)
 
@@ -92,8 +116,10 @@ NEVER mix these up. Next.js only reads from frontend/.env.local. Foundry only re
 - Write detailed specs upfront to reduce ambiguity
 - Verify every change compiles and renders before marking complete
 
-## What's Remaining
+## Remaining Work (priority order)
 
-1. Account abstraction (ERC-4337) -- gasless upvotes at minimum. MUST for capstone
-2. Demo script / presentation prep
-3. Final polish and testing
+1. Chainlink price feed (ETH/USD proxy for WELP/USD display)
+2. Slither fixes: self-voting prevention, check-in rate limit, interface inheritance, tier1Threshold constant
+3. Base mainnet deployment (~$20-40 budget)
+4. Demo script for graduation call
+5. Final polish
