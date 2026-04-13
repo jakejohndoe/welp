@@ -6,12 +6,14 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { ADDRESSES, REVIEW_REGISTRY_ABI } from "@/lib/contracts";
+import { ADDRESSES, REVIEW_REGISTRY_ABI, REWARDS_VAULT_ABI } from "@/lib/contracts";
 import { uploadToPinata } from "@/lib/pinata";
 import { useState, useEffect, Suspense, useCallback } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import confetti from "canvas-confetti";
+import { useWelpPrice } from "@/hooks/useWelpPrice";
+import { formatUnits } from "viem";
 
 export default function WriteReviewPage() {
   return (
@@ -34,6 +36,7 @@ function WriteReview() {
   const businessName =
     searchParams.get("businessName") || `Business #${businessId}`;
   const { address, isConnected } = useAccount();
+  const { price: welpPriceUsd } = useWelpPrice();
 
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -152,7 +155,9 @@ function WriteReview() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Review Submitted!
           </h2>
-          <p className="text-gray-500 text-lg mb-8">You earned WELP tokens!</p>
+          <p className="text-gray-500 text-lg mb-8">
+            You earned 100 WELP tokens{welpPriceUsd ? ` (~$${(welpPriceUsd * 100).toFixed(2)} USD)` : ''}!
+          </p>
           <div className="flex flex-col gap-3">
             <button
               onClick={() => router.push(`/business/${businessId}`)}

@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {WelpToken} from "../src/WelpToken.sol";
 import {RewardsVault} from "../src/RewardsVault.sol";
 import {ReviewRegistry} from "../src/ReviewRegistry.sol";
+import {PriceFeed} from "../src/PriceFeed.sol";
 
 contract Deploy is Script {
     function run() external {
@@ -16,6 +17,10 @@ contract Deploy is Script {
         WelpToken token = new WelpToken(deployer);
         RewardsVault vault = new RewardsVault(deployer);
         ReviewRegistry registry = new ReviewRegistry(deployer);
+
+        // Sepolia ETH/USD Chainlink feed
+        address sepoliaEthUsdFeed = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
+        PriceFeed priceFeed = new PriceFeed(sepoliaEthUsdFeed);
 
         // ── Wire together ───────────────────────────
         token.setRewardsVault(address(vault));
@@ -39,6 +44,7 @@ contract Deploy is Script {
         console.log("WelpToken:", address(token));
         console.log("RewardsVault:", address(vault));
         console.log("ReviewRegistry:", address(registry));
+        console.log("PriceFeed:", address(priceFeed));
 
         vm.stopBroadcast();
     }

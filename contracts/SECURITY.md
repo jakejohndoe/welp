@@ -88,3 +88,15 @@ slither .
 # Check test coverage
 forge coverage
 ```
+
+## Chainlink Integration (April 12, 2026)
+
+### PriceFeed Contract
+**Address**: 0xC1a5A807d0c0913BcD8635b345FFf9148EcE9dbb (Sepolia)
+**Purpose**: Provides WELP/USD price using Chainlink ETH/USD oracle
+**Features**:
+- Uses Chainlink ETH/USD feed: 0x694AA1769357215DE4FAC081bf1f309aDC325306
+- Configurable WELP/ETH rate (default: 10,000 WELP per ETH)
+- 1-hour staleness check on price data
+- Ownable2Step for admin functions
+**Tests**: 15 unit tests + 3 fork tests (all passing)

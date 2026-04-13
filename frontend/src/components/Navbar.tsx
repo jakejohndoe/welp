@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { useState } from "react";
+import { WelpPriceBadge } from "./WelpPriceBadge";
 
 export function Navbar() {
   const { address, isConnected } = useAccount();
@@ -78,31 +79,34 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Right: Wallet */}
-          <div>
-            {isConnected ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/dashboard"
-                  className="text-sm text-gray-600 hover:text-[#4A90E2] font-mono transition"
-                >
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
-                </Link>
-                <button
-                  onClick={() => setShowDisconnectModal(true)}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
-                >
-                  Disconnect
-                </button>
-              </div>
-            ) : (
+          {/* Right: Price + Wallet */}
+          <div className="flex items-center gap-4">
+            {isConnected && <WelpPriceBadge />}
+            <div>
+              {isConnected ? (
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/dashboard"
+                    className="text-sm text-gray-600 hover:text-[#4A90E2] font-mono transition"
+                  >
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </Link>
+                  <button
+                    onClick={() => setShowDisconnectModal(true)}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
               <button
                 onClick={() => connect({ connector: injected() })}
                 className="px-5 py-2 rounded-lg bg-[#4A90E2] hover:bg-[#357ABD] text-white text-sm font-semibold transition-all duration-300 shadow-sm"
               >
                 Connect Wallet
               </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </nav>

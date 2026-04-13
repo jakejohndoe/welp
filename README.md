@@ -143,6 +143,7 @@ Open [http://localhost:3000](http://localhost:3000). Connect MetaMask (Sepolia n
 | WelpToken | [`0xDF76BdF11812E93f31BDF6363FE3CD1fE4078A52`](https://sepolia.etherscan.io/address/0xDF76BdF11812E93f31BDF6363FE3CD1fE4078A52) |
 | RewardsVault | [`0xaCd596F9546A32469E4d7120593e7b54e119351B`](https://sepolia.etherscan.io/address/0xaCd596F9546A32469E4d7120593e7b54e119351B) |
 | ReviewRegistry | [`0xed08ee493161Fb3eA1Fb8935271ed6E85fdD8C0C`](https://sepolia.etherscan.io/address/0xed08ee493161Fb3eA1Fb8935271ed6E85fdD8C0C) |
+| PriceFeed (Chainlink) | [`0xC1a5A807d0c0913BcD8635b345FFf9148EcE9dbb`](https://sepolia.etherscan.io/address/0xC1a5A807d0c0913BcD8635b345FFf9148EcE9dbb) |
 
 ## Project Structure
 
