@@ -3,28 +3,25 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useProfile } from "@/hooks/useProfile";
 
-const AVATARS = [
-  { src: "/avatars/basic-woman-avatar.png", label: "Basic Woman" },
-  { src: "/avatars/blonde-male-avatar.png", label: "Blonde Male" },
-  { src: "/avatars/boutique-owner-avatar.png", label: "Boutique Owner" },
-  { src: "/avatars/businessman-avatar.png", label: "Businessman" },
-  { src: "/avatars/chef-avatar.png", label: "Chef" },
-  { src: "/avatars/gardener-avatar.png", label: "Gardener" },
-  { src: "/avatars/headwrap-person-avatar.png", label: "Headwrap Person" },
-  { src: "/avatars/librarian-avatar.png", label: "Librarian" },
-  { src: "/avatars/mechanic-avatar.png", label: "Mechanic" },
+const DEFAULT_SEEDS = [
+  "explorer", "foodie", "wanderer", "cryptofan",
+  "moonwalker", "stargazer", "trailblazer", "wavelength",
+  "sunrise", "thunderbolt", "firefly", "aurora",
 ];
 
+function getDicebearUrl(seed: string) {
+  return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
+}
+
 const CATEGORIES = [
-  { id: "food", label: "Food & Dining", emoji: "🍽️" },
-  { id: "coffee", label: "Coffee & Tea", emoji: "☕" },
-  { id: "shopping", label: "Shopping", emoji: "🛍️" },
-  { id: "entertainment", label: "Entertainment", emoji: "🎪" },
-  { id: "services", label: "Services", emoji: "🔧" },
-  { id: "nightlife", label: "Nightlife", emoji: "🍺" },
+  { id: "food", label: "Food & Dining", emoji: "\u{1F37D}\u{FE0F}" },
+  { id: "coffee", label: "Coffee & Tea", emoji: "\u2615" },
+  { id: "shopping", label: "Shopping", emoji: "\u{1F6CD}\u{FE0F}" },
+  { id: "entertainment", label: "Entertainment", emoji: "\u{1F3AA}" },
+  { id: "services", label: "Services", emoji: "\u{1F527}" },
+  { id: "nightlife", label: "Nightlife", emoji: "\u{1F37A}" },
 ];
 
 export default function Onboarding() {
@@ -34,7 +31,8 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [displayName, setDisplayName] = useState("");
-  const [selectedAvatar, setSelectedAvatar] = useState("");
+  const [selectedSeed, setSelectedSeed] = useState("");
+  const [avatarSeeds, setAvatarSeeds] = useState(DEFAULT_SEEDS);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
@@ -56,10 +54,18 @@ export default function Onboarding() {
     );
   };
 
+  const randomizeAvatars = () => {
+    const newSeeds = Array.from({ length: 12 }, () =>
+      Math.random().toString(36).slice(2, 10)
+    );
+    setAvatarSeeds(newSeeds);
+    setSelectedSeed("");
+  };
+
   const handleComplete = () => {
     saveProfile({
       displayName: displayName.trim(),
-      avatar: selectedAvatar,
+      avatar: selectedSeed,
       categories: selectedCategories,
       completedAt: Date.now(),
     });
@@ -68,7 +74,7 @@ export default function Onboarding() {
 
   const canProceed = () => {
     if (step === 1) return displayName.trim().length >= 2;
-    if (step === 2) return selectedAvatar !== "";
+    if (step === 2) return selectedSeed !== "";
     if (step === 3) return selectedCategories.length >= 2;
     return false;
   };
@@ -85,17 +91,17 @@ export default function Onboarding() {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                   s === step
-                    ? "bg-[#4A90E2] text-white"
+                    ? "bg-[#4A90E2] text-white shadow-md"
                     : s < step
                     ? "bg-green-100 text-green-600"
                     : "bg-gray-100 text-gray-400"
                 }`}
               >
-                {s < step ? "✓" : s}
+                {s < step ? "\u2713" : s}
               </div>
               {s < 3 && (
                 <div
-                  className={`w-12 h-0.5 ${
+                  className={`w-12 h-0.5 transition-colors ${
                     s < step ? "bg-green-300" : "bg-gray-200"
                   }`}
                 />
@@ -104,113 +110,124 @@ export default function Onboarding() {
           ))}
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-8">
-          {/* Step 1: Display Name */}
-          {step === 1 && (
-            <>
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Welcome to welp!
-                </h1>
-                <p className="text-gray-500">
-                  Choose a display name for your profile
-                </p>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Display Name
-                  </label>
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Enter your name..."
-                    maxLength={24}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 text-gray-900 placeholder-gray-300 focus:border-[#4A90E2] focus:outline-none transition"
-                  />
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    {displayName.length}/24 characters
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-8 shadow-lg">
+          {/* Animated step content */}
+          <div key={step} className="animate-fade-slide-up">
+            {/* Step 1: Display Name */}
+            {step === 1 && (
+              <>
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    Welcome to welp!
+                  </h1>
+                  <p className="text-gray-500">
+                    Choose a display name for your profile
                   </p>
                 </div>
-                <p className="text-xs text-gray-400">
-                  Connected as{" "}
-                  <span className="font-mono">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </span>
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Step 2: Avatar */}
-          {step === 2 && (
-            <>
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Choose Your Avatar
-                </h1>
-                <p className="text-gray-500">
-                  Select an avatar that represents you
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {AVATARS.map((avatar) => (
-                  <button
-                    key={avatar.src}
-                    onClick={() => setSelectedAvatar(avatar.src)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      selectedAvatar === avatar.src
-                        ? "border-[#4A90E2] bg-blue-50"
-                        : "border-gray-100 hover:border-gray-200"
-                    }`}
-                  >
-                    <Image
-                      src={avatar.src}
-                      alt={avatar.label}
-                      width={56}
-                      height={56}
-                      className="rounded-full"
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Enter your name..."
+                      maxLength={24}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 text-gray-900 placeholder-gray-300 focus:border-[#4A90E2] focus:outline-none transition"
                     />
-                    <span className="text-xs text-gray-500">{avatar.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {displayName.length}/24 characters
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Connected as{" "}
+                    <span className="font-mono">
+                      {address?.slice(0, 6)}...{address?.slice(-4)}
+                    </span>
+                  </p>
+                </div>
+              </>
+            )}
 
-          {/* Step 3: Categories */}
-          {step === 3 && (
-            <>
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Your Interests
-                </h1>
-                <p className="text-gray-500">
-                  Pick 2-3 categories you love exploring
+            {/* Step 2: Avatar */}
+            {step === 2 && (
+              <>
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    Choose Your Avatar
+                  </h1>
+                  <p className="text-gray-500">
+                    Select an avatar that represents you
+                  </p>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {avatarSeeds.map((seed) => (
+                    <button
+                      key={seed}
+                      onClick={() => setSelectedSeed(seed)}
+                      className={`flex items-center justify-center p-2 rounded-xl border-2 transition-all hover:shadow-sm ${
+                        selectedSeed === seed
+                          ? "border-[#4A90E2] bg-blue-50 shadow-md"
+                          : "border-gray-100 hover:border-gray-200"
+                      }`}
+                    >
+                      <img
+                        src={getDicebearUrl(seed)}
+                        alt={`Avatar ${seed}`}
+                        width={64}
+                        height={64}
+                        className="rounded-lg"
+                      />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={randomizeAvatars}
+                  className="w-full mt-4 py-2.5 rounded-xl border-2 border-gray-100 text-gray-600 font-medium hover:bg-gray-50 hover:border-gray-200 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+                  </svg>
+                  Randomize
+                </button>
+              </>
+            )}
+
+            {/* Step 3: Categories */}
+            {step === 3 && (
+              <>
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    Your Interests
+                  </h1>
+                  <p className="text-gray-500">
+                    Pick 2-3 categories you love exploring
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => toggleCategory(cat.id)}
+                      className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                        selectedCategories.includes(cat.id)
+                          ? "border-[#4A90E2] bg-blue-50 text-[#4A90E2] shadow-md"
+                          : "border-gray-100 text-gray-600 hover:border-gray-200 hover:-translate-y-0.5 hover:shadow-md"
+                      }`}
+                    >
+                      <span className="text-xl">{cat.emoji}</span>
+                      <span className="text-sm font-medium">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-3 text-center">
+                  {selectedCategories.length}/3 selected (min 2)
                 </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => toggleCategory(cat.id)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                      selectedCategories.includes(cat.id)
-                        ? "border-[#4A90E2] bg-blue-50 text-[#4A90E2]"
-                        : "border-gray-100 text-gray-600 hover:border-gray-200"
-                    }`}
-                  >
-                    <span className="text-xl">{cat.emoji}</span>
-                    <span className="text-sm font-medium">{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                {selectedCategories.length}/3 selected (min 2)
-              </p>
-            </>
-          )}
+              </>
+            )}
+          </div>
 
           {/* Navigation buttons */}
           <div className="flex gap-3 mt-8">
@@ -226,7 +243,7 @@ export default function Onboarding() {
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={!canProceed()}
-                className="flex-1 py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] hover:scale-[1.02] text-white font-semibold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Next
               </button>
@@ -234,7 +251,7 @@ export default function Onboarding() {
               <button
                 onClick={handleComplete}
                 disabled={!canProceed()}
-                className="flex-1 py-3 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-gray-900 font-semibold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 py-3 rounded-xl bg-[#F5A623] hover:bg-[#E6951F] hover:scale-[1.02] text-white font-semibold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
               >
                 Complete Setup
               </button>

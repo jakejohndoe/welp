@@ -9,24 +9,11 @@ import {
   REWARDS_VAULT_ABI,
 } from "@/lib/contracts";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
-
-const AVATARS = [
-  "/avatars/basic-woman-avatar.png",
-  "/avatars/blonde-male-avatar.png",
-  "/avatars/boutique-owner-avatar.png",
-  "/avatars/businessman-avatar.png",
-  "/avatars/chef-avatar.png",
-  "/avatars/gardener-avatar.png",
-  "/avatars/headwrap-person-avatar.png",
-  "/avatars/librarian-avatar.png",
-  "/avatars/mechanic-avatar.png",
-];
 
 function getTierInfo(rep: number) {
   if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
@@ -198,8 +185,8 @@ export default function Dashboard() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Image
-          src={profile.avatar}
+        <img
+          src={profile.avatar.startsWith("/") ? profile.avatar : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(profile.avatar)}`}
           alt="avatar"
           width={48}
           height={48}
@@ -364,7 +351,7 @@ export default function Dashboard() {
           {businessesData?.slice(0, 4).map((b, i) => {
             if (b.status !== "success") return null;
             const [, name, category] = b.result as unknown as [bigint, string, string, string, boolean];
-            const bizAvatar = AVATARS[(i + 3) % AVATARS.length];
+            const bizAvatar = `https://api.dicebear.com/9.x/shapes/svg?seed=${name.toLowerCase().replace(/\s+/g, "")}`;
             return (
               <Link
                 key={i}

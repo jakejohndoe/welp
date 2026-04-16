@@ -7,18 +7,6 @@ import { useState } from "react";
 
 const BUSINESS_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const AVATARS = [
-  "/avatars/basic-woman-avatar.png",
-  "/avatars/blonde-male-avatar.png",
-  "/avatars/boutique-owner-avatar.png",
-  "/avatars/businessman-avatar.png",
-  "/avatars/chef-avatar.png",
-  "/avatars/gardener-avatar.png",
-  "/avatars/headwrap-person-avatar.png",
-  "/avatars/librarian-avatar.png",
-  "/avatars/mechanic-avatar.png",
-];
-
 const CATEGORIES = ["All", "Coffee & Tea", "Restaurant", "Bar & Grill", "Market", "Entertainment", "Brewery"];
 
 export default function Businesses() {
@@ -143,7 +131,7 @@ export default function Businesses() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered?.map((biz) => {
-            const avatarIdx = biz.id % AVATARS.length;
+            const bizSeed = biz.name.toLowerCase().replace(/\s+/g, "");
             return (
               <Link
                 key={biz.id}
@@ -153,7 +141,7 @@ export default function Businesses() {
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">
                     <img
-                      src={AVATARS[avatarIdx]}
+                      src={`https://api.dicebear.com/9.x/shapes/svg?seed=${bizSeed}`}
                       alt=""
                       className="w-12 h-12 rounded-full"
                     />

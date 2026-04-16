@@ -21,3 +21,65 @@ html, body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
+
+/* Button sheen animation */
+@keyframes sheen {
+  0% { transform: translateX(-100%) rotate(-25deg); }
+  100% { transform: translateX(200%) rotate(-25deg); }
+}
+
+.btn-sheen {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.btn-sheen::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 100%
+  );
+  transform: rotate(-25deg);
+  animation: sheen 3s ease-in-out infinite;
+}
+
+.btn-sheen:hover::after {
+  animation-duration: 1.5s;
+}
+
+/* WELP coin spin */
+@keyframes spin-coin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Floating particles */
+@keyframes float-particle {
+  0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+  25% { transform: translate(var(--dx1), var(--dy1)); opacity: 0.7; }
+  50% { transform: translate(var(--dx2), var(--dy2)); opacity: 0.3; }
+  75% { transform: translate(var(--dx3), var(--dy3)); opacity: 0.6; }
+}
+
+/* Coin flip for wallet-connecting modal */
+@keyframes coin-flip {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* Step fade-slide-up transition */
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-slide-up {
+  animation: fade-slide-up 0.3s ease forwards;
+}

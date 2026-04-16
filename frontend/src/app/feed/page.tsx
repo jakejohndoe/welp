@@ -17,17 +17,9 @@ import { TierBadge } from "@/components/TierBadge";
 import { useSmartTransaction } from "@/hooks/useSmartTransaction";
 import { useState } from "react";
 
-const AVATARS = [
-  "/avatars/basic-woman-avatar.png",
-  "/avatars/blonde-male-avatar.png",
-  "/avatars/boutique-owner-avatar.png",
-  "/avatars/businessman-avatar.png",
-  "/avatars/chef-avatar.png",
-  "/avatars/gardener-avatar.png",
-  "/avatars/headwrap-person-avatar.png",
-  "/avatars/librarian-avatar.png",
-  "/avatars/mechanic-avatar.png",
-];
+function getDicebearUrl(seed: string) {
+  return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
+}
 
 function VoteButton({
   reviewId,
@@ -273,7 +265,9 @@ export default function Feed() {
             const netVotes = Number(review.upvotes) - Number(review.downvotes);
             const rep = reputations[review.reviewer];
             const isOwnReview = address && review.reviewer.toLowerCase() === address.toLowerCase();
-            const reviewerAvatar = isOwnReview && profile ? profile.avatar : AVATARS[parseInt(review.reviewer.slice(2, 4), 16) % AVATARS.length];
+            const reviewerAvatar = isOwnReview && profile
+              ? (profile.avatar.startsWith("/") ? profile.avatar : getDicebearUrl(profile.avatar))
+              : getDicebearUrl(review.reviewer);
             const reviewerName = isOwnReview && profile ? profile.displayName : `${review.reviewer.slice(0, 6)}...${review.reviewer.slice(-4)}`;
 
             return (

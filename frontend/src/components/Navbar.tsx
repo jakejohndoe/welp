@@ -36,19 +36,26 @@ export function Navbar() {
       ]
     : [];
 
+  // Welcome page uses a non-sticky transparent navbar sitting on the gradient
+  const isWelcome = pathname === "/welcome";
+
   return (
     <>
-      <nav className="backdrop-blur-md bg-white/90 border-b border-white/20 shadow-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <nav className={`z-50 ${
+        isWelcome
+          ? "relative bg-transparent"
+          : "sticky top-0 backdrop-blur-md bg-white/90 border-b border-white/20 shadow-lg"
+      }`}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between ${isWelcome ? "h-28" : "h-24"}`}>
           {/* Left: Logo + Nav */}
           <div className="flex items-center gap-8">
             <Link href={isConnected ? "/dashboard" : "/welcome"} className="flex items-center gap-2">
               <Image
                 src="/logos/welp-logo-adblue.png"
                 alt="welp"
-                width={140}
-                height={44}
-                className="h-11 w-auto"
+                width={300}
+                height={94}
+                className={isWelcome ? "h-14 sm:h-[5.5rem] w-auto brightness-0 invert" : "h-14 sm:h-[5.5rem] w-auto"}
                 priority
               />
             </Link>
@@ -96,6 +103,21 @@ export function Navbar() {
                     className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
                   >
                     Disconnect
+                  </button>
+                </div>
+              ) : isWelcome ? (
+                <div className="flex items-center gap-6">
+                  <a href="#" className="hidden sm:inline text-white/80 hover:text-white text-sm font-medium transition-colors">
+                    Docs
+                  </a>
+                  <a href="#" className="hidden sm:inline text-white/80 hover:text-white text-sm font-medium transition-colors">
+                    Token
+                  </a>
+                  <button
+                    onClick={() => connect({ connector: injected() })}
+                    className="px-5 py-2 rounded-lg bg-[#F5D033] hover:bg-[#E6C029] text-gray-900 text-sm font-bold transition-all duration-300 hover:shadow-[0_0_16px_rgba(245,208,51,0.3)]"
+                  >
+                    Connect Wallet
                   </button>
                 </div>
               ) : (
