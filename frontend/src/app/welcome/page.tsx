@@ -128,6 +128,7 @@ function FloatingCoins() {
       el.style.width = `${coin.size}px`;
       el.style.height = `${coin.size}px`;
       el.style.cursor = "pointer";
+      el.style.pointerEvents = "auto";
       el.style.willChange = "transform, opacity";
       el.innerHTML = COIN_SVG;
       const svg = el.querySelector("svg")!;
@@ -311,8 +312,8 @@ function FloatingCoins() {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 pointer-events-auto"
-      style={{ zIndex: 1 }}
+      className="absolute inset-0"
+      style={{ pointerEvents: "none" }}
       aria-hidden="true"
     />
   );
@@ -373,7 +374,7 @@ export default function Welcome() {
   }, []);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative">
       {/* Wallet connecting modal */}
       {isConnecting && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -387,11 +388,14 @@ export default function Welcome() {
         </div>
       )}
 
-      {/* Interactive floating coins */}
+      {/* Interactive floating coins -- fixed to viewport so coins drift over
+          navbar/footer. zIndex above navbar (50) so clicks on coins win;
+          container itself is pointer-events:none so empty space falls through
+          to nav links / CTAs. */}
       <div
         ref={parallaxRef}
-        className="absolute inset-0 transition-transform duration-200 ease-out"
-        style={{ zIndex: 1 }}
+        className="fixed inset-0 transition-transform duration-200 ease-out pointer-events-none"
+        style={{ zIndex: 60 }}
       >
         <FloatingCoins />
       </div>
