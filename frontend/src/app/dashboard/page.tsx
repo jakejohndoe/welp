@@ -30,7 +30,9 @@ function relativeTime(unixSec: number): string {
 function getTierInfo(rep: number) {
   if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
   if (rep >= 5) return { name: "Silver", emoji: "🥈", color: "text-blue-600", barColor: "from-blue-400 to-blue-500" };
-  return { name: "Bronze", emoji: "🟤", color: "text-orange-600", barColor: "from-orange-400 to-orange-500" };
+  // Bronze desaturated to a warm muted brown so it reads as progress
+  // indicator, not primary visual moment against the soft gradient.
+  return { name: "Bronze", emoji: "🟤", color: "text-[#A67C52]", barColor: "from-[#C9A27A] to-[#A67C52]" };
 }
 
 export default function Dashboard() {
@@ -361,7 +363,7 @@ export default function Dashboard() {
         {/* Nearby Businesses -- promoted into the top row so the user
             always has somewhere to go. Replaces the old Quick Actions
             panel; Write a Review lives in the FAB at the bottom. */}
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6">
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6 flex flex-col">
           <div className="flex items-end justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Nearby Businesses</h2>
@@ -371,8 +373,8 @@ export default function Dashboard() {
               View all
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
-            {businessesData?.slice(0, 4).map((b, i) => {
+          <div className="grid grid-cols-2 gap-3 flex-1 auto-rows-fr">
+            {businessesData?.slice(0, 6).map((b, i) => {
               if (b.status !== "success") return null;
               const [, name, category] = b.result as unknown as [bigint, string, string, string, boolean];
               const bizAvatar = `https://api.dicebear.com/9.x/shapes/svg?seed=${name.toLowerCase().replace(/\s+/g, "")}`;
@@ -380,16 +382,16 @@ export default function Dashboard() {
                 <Link
                   key={i}
                   href={`/business/${i}`}
-                  className="flex-shrink-0 w-40 rounded-xl border-2 border-gray-100 p-3 hover:border-brand-primary hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+                  className="rounded-xl border-2 border-gray-100 p-3 hover:border-brand-primary hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between min-h-0"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src={bizAvatar} alt="" className="w-8 h-8 rounded-full" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img src={bizAvatar} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
                       <p className="text-xs text-gray-400 truncate">{category}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-brand-primary">View →</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-brand-primary mt-2 self-start">View →</span>
                 </Link>
               );
             })}

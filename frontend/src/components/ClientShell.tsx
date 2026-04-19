@@ -20,12 +20,21 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
       {showGradient && <PageBackground />}
       <Navbar />
       <main className="flex-1">{children}</main>
+      {/* Soft fade from the gradient canvas into the translucent footer
+          so the transition breathes instead of hard-cutting. The band's
+          bottom color matches the footer bg so the seam disappears. */}
+      {showGradient && (
+        <div
+          aria-hidden
+          className="pointer-events-none h-20 bg-gradient-to-b from-transparent to-white/85"
+        />
+      )}
       {!isWelcome && (
-        <footer className={`${showGradient ? "bg-white/85 backdrop-blur-md border-t border-white/40" : "border-t border-gray-200"} py-10 mt-8`}>
+        <footer className={`${showGradient ? "bg-white/85 backdrop-blur-md" : "border-t border-gray-200"} py-6`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <Image src="/logos/welp-logo-adblue.png" alt="welp" width={300} height={96} className="h-24 w-auto" priority={false} />
+                <Image src="/logos/welp-logo-adblue.png" alt="welp" width={200} height={64} className="h-14 w-auto" priority={false} />
                 <span className="text-gray-400 text-sm">&copy; 2026 Welp</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">

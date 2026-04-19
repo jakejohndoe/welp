@@ -9,7 +9,7 @@ type Props = {
 
 // Eases from 0 to `value` over `duration` ms on mount and whenever
 // `value` changes. Uses requestAnimationFrame, no dep.
-export function CountUp({ value, duration = 400 }: Props) {
+export function CountUp({ value, duration = 950 }: Props) {
   const [display, setDisplay] = useState(0);
   const fromRef = useRef(0);
 
