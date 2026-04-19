@@ -259,7 +259,15 @@ export default function Dashboard() {
           <div className="flex items-center gap-3 flex-1">
             <span className="text-lg">{tier.emoji}</span>
             <span className={`font-semibold ${tier.color}`}>{tier.name}</span>
-            <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              role="progressbar"
+              aria-valuenow={rep}
+              aria-valuemin={0}
+              aria-valuemax={t3Threshold}
+              aria-label="Earn XP when others upvote your reviews. Silver at 5 rep, Gold at 20. Upvotes +1, downvotes -1."
+              title="Earn XP when others upvote your reviews. Silver at 5 rep, Gold at 20. Upvotes +1, downvotes -1."
+              className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden"
+            >
               <div
                 className={`h-full bg-gradient-to-r ${tier.barColor} rounded-full transition-all duration-700 ease-out`}
                 style={{ width: `${barWidth}%` }}
@@ -271,6 +279,12 @@ export default function Dashboard() {
             {rep >= 20 ? "Elite Reviewer" : rep >= 5 ? "Rising Reviewer" : "New Reviewer"}
           </div>
         </div>
+        <p className="mt-2 text-xs text-gray-400">
+          Earn XP when others upvote your reviews.{" "}
+          <Link href="/docs#tiers" className="text-brand-primary/80 hover:text-brand-primary hover:underline">
+            Learn more →
+          </Link>
+        </p>
       </div>
 
       {/* 4 Stat Cards */}
