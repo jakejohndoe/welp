@@ -162,7 +162,7 @@ function WriteReview() {
           <div className="flex flex-col gap-3">
             <button
               onClick={() => router.push(`/business/${businessId}`)}
-              className="w-full py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold transition-all duration-300"
+              className="w-full py-3 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold transition-all duration-300"
             >
               Back to Business
             </button>
@@ -196,7 +196,7 @@ function WriteReview() {
         <p className="text-gray-500">No business selected.</p>
         <Link
           href="/businesses"
-          className="text-[#4A90E2] hover:underline mt-4 inline-block"
+          className="text-brand-primary hover:underline mt-4 inline-block"
         >
           Browse businesses
         </Link>
@@ -221,14 +221,14 @@ function WriteReview() {
       />
       <Link
         href={`/business/${businessId}`}
-        className="text-sm text-gray-400 hover:text-[#4A90E2] mb-6 inline-flex items-center gap-1 transition"
+        className="text-sm text-gray-400 hover:text-brand-primary mb-6 inline-flex items-center gap-1 transition"
       >
         <span>&larr;</span> Back to {businessName}
       </Link>
 
       <div className="bg-white rounded-[1.5rem] border-2 border-gray-100 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#4A90E2] to-blue-500 p-6">
+        <div className="bg-gradient-to-r from-brand-primary to-blue-500 p-6">
           <h1 className="text-xl font-bold text-white">Write a Review</h1>
           <p className="text-white/80 mt-1">{businessName}</p>
         </div>
@@ -278,14 +278,14 @@ function WriteReview() {
               onChange={(e) => setReviewText(e.target.value)}
               rows={5}
               placeholder="Share your experience..."
-              className="w-full rounded-xl border-2 border-gray-100 bg-white px-4 py-3 text-gray-900 placeholder-gray-300 focus:border-[#4A90E2] focus:outline-none transition"
+              className="w-full rounded-xl border-2 border-gray-100 bg-white px-4 py-3 text-gray-900 placeholder-gray-300 focus:border-brand-primary focus:outline-none transition"
             />
           </div>
 
           <button
             type="submit"
             disabled={rating === 0 || isPending || uploading}
-            className="w-full py-3.5 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)]"
+            className="w-full py-3.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)]"
           >
             Submit Review
           </button>

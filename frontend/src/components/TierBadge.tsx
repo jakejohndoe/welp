@@ -9,7 +9,7 @@ export function getTierFromRep(rep: number): { name: string; tier: "bronze" | "s
 const TIER_STYLES = {
   bronze: "bg-amber-50 text-amber-700",
   silver: "bg-gray-100 text-gray-600",
-  gold: "bg-[#F5D033]/20 text-amber-700",
+  gold: "bg-brand-yellow/20 text-amber-700",
 } as const;
 
 export function TierBadge({ rep }: { rep: number }) {

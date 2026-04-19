@@ -91,7 +91,7 @@ export default function Businesses() {
               placeholder="Search by name or category..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-gray-100 bg-white text-gray-900 placeholder-gray-400 focus:border-[#4A90E2] focus:outline-none transition"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-gray-100 bg-white text-gray-900 placeholder-gray-400 focus:border-brand-primary focus:outline-none transition"
             />
           </div>
         </div>
@@ -104,8 +104,8 @@ export default function Businesses() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 selectedCategory === cat
-                  ? "bg-[#4A90E2] text-white"
-                  : "bg-white border-2 border-gray-100 text-gray-600 hover:border-[#4A90E2] hover:text-[#4A90E2]"
+                  ? "bg-brand-primary text-white"
+                  : "bg-white border-2 border-gray-100 text-gray-600 hover:border-brand-primary hover:text-brand-primary"
               }`}
             >
               {cat}
@@ -113,7 +113,7 @@ export default function Businesses() {
           ))}
         </div>
 
-        <p className="text-sm text-[#4A90E2]">
+        <p className="text-sm text-brand-primary">
           Showing {filtered?.length || 0} of {businesses?.length || 0} businesses
         </p>
       </div>
@@ -136,7 +136,7 @@ export default function Businesses() {
               <Link
                 key={biz.id}
                 href={`/business/${biz.id}`}
-                className="group rounded-[1.5rem] bg-white border-2 border-gray-100 hover:border-[#4A90E2] overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+                className="group rounded-[1.5rem] bg-white border-2 border-gray-100 hover:border-brand-primary overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               >
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">
@@ -146,7 +146,7 @@ export default function Businesses() {
                       className="w-12 h-12 rounded-full"
                     />
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#4A90E2] transition-colors truncate">
+                      <h2 className="text-lg font-semibold text-gray-900 group-hover:text-brand-primary transition-colors truncate">
                         {biz.name}
                       </h2>
                       <p className="text-sm text-gray-500">{biz.category}</p>
@@ -168,7 +168,7 @@ export default function Businesses() {
                     ) : (
                       <span className="text-xs text-gray-400">No ratings yet</span>
                     )}
-                    <span className="text-xs font-medium text-[#4A90E2] bg-blue-50 px-3 py-1 rounded-full">
+                    <span className="text-xs font-medium text-brand-primary bg-blue-50 px-3 py-1 rounded-full">
                       View →
                     </span>
                   </div>

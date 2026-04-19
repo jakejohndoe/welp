@@ -91,7 +91,7 @@ export default function Onboarding() {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                   s === step
-                    ? "bg-[#4A90E2] text-white shadow-md"
+                    ? "bg-brand-primary text-white shadow-md"
                     : s < step
                     ? "bg-green-100 text-green-600"
                     : "bg-gray-100 text-gray-400"
@@ -135,7 +135,7 @@ export default function Onboarding() {
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="Enter your name..."
                       maxLength={24}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 text-gray-900 placeholder-gray-300 focus:border-[#4A90E2] focus:outline-none transition"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 text-gray-900 placeholder-gray-300 focus:border-brand-primary focus:outline-none transition"
                     />
                     <p className="text-xs text-gray-400 mt-1.5">
                       {displayName.length}/24 characters
@@ -169,7 +169,7 @@ export default function Onboarding() {
                       onClick={() => setSelectedSeed(seed)}
                       className={`flex items-center justify-center p-2 rounded-xl border-2 transition-all hover:shadow-sm ${
                         selectedSeed === seed
-                          ? "border-[#4A90E2] bg-blue-50 shadow-md"
+                          ? "border-brand-primary bg-blue-50 shadow-md"
                           : "border-gray-100 hover:border-gray-200"
                       }`}
                     >
@@ -213,7 +213,7 @@ export default function Onboarding() {
                       onClick={() => toggleCategory(cat.id)}
                       className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all text-left ${
                         selectedCategories.includes(cat.id)
-                          ? "border-[#4A90E2] bg-blue-50 text-[#4A90E2] shadow-md"
+                          ? "border-brand-primary bg-blue-50 text-brand-primary shadow-md"
                           : "border-gray-100 text-gray-600 hover:border-gray-200 hover:-translate-y-0.5 hover:shadow-md"
                       }`}
                     >
@@ -243,7 +243,7 @@ export default function Onboarding() {
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={!canProceed()}
-                className="flex-1 py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] hover:scale-[1.02] text-white font-semibold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="flex-1 py-3 rounded-xl bg-brand-primary hover:bg-brand-hover hover:scale-[1.02] text-white font-semibold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Next
               </button>

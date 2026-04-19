@@ -74,8 +74,8 @@ export function Navbar() {
                       href={link.href}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                         isActive
-                          ? "text-[#4A90E2] bg-blue-50"
-                          : "text-gray-700 hover:text-[#4A90E2] hover:bg-blue-50"
+                          ? "text-brand-primary bg-blue-50"
+                          : "text-gray-700 hover:text-brand-primary hover:bg-blue-50"
                       }`}
                     >
                       {link.label}
@@ -94,7 +94,7 @@ export function Navbar() {
                 <div className="flex items-center gap-3">
                   <Link
                     href="/dashboard"
-                    className="text-sm text-gray-600 hover:text-[#4A90E2] font-mono transition"
+                    className="text-sm text-gray-600 hover:text-brand-primary font-mono transition"
                   >
                     {address?.slice(0, 6)}...{address?.slice(-4)}
                   </Link>
@@ -115,7 +115,7 @@ export function Navbar() {
                   </a>
                   <button
                     onClick={() => connect({ connector: injected() })}
-                    className="px-5 py-2 rounded-lg bg-[#F5D033] hover:bg-[#E6C029] text-gray-900 text-sm font-bold transition-all duration-300 hover:shadow-[0_0_16px_rgba(245,208,51,0.3)]"
+                    className="px-5 py-2 rounded-lg bg-brand-yellow hover:bg-brand-yellow-hover text-gray-900 text-sm font-bold transition-all duration-300 hover:shadow-[0_0_16px_rgba(245,208,51,0.3)]"
                   >
                     Connect Wallet
                   </button>
@@ -123,7 +123,7 @@ export function Navbar() {
               ) : (
               <button
                 onClick={() => connect({ connector: injected() })}
-                className="px-5 py-2 rounded-lg bg-[#4A90E2] hover:bg-[#357ABD] text-white text-sm font-semibold transition-all duration-300 shadow-sm"
+                className="px-5 py-2 rounded-lg bg-brand-primary hover:bg-brand-hover text-white text-sm font-semibold transition-all duration-300 shadow-sm"
               >
                 Connect Wallet
               </button>

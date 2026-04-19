@@ -137,8 +137,8 @@ function VoteButton({
         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-sm font-bold disabled:cursor-default ${
           type === "upvote"
             ? voted
-              ? "bg-blue-100 text-[#4A90E2]"
-              : "text-gray-300 hover:bg-blue-50 hover:text-[#4A90E2]"
+              ? "bg-blue-100 text-brand-primary"
+              : "text-gray-300 hover:bg-blue-50 hover:text-brand-primary"
             : voted
             ? "bg-red-100 text-red-500"
             : "text-gray-300 hover:bg-red-50 hover:text-red-500"
@@ -253,7 +253,7 @@ export default function Feed() {
         <div className="text-center py-16 text-gray-400 bg-white rounded-[1.5rem] border-2 border-gray-100">
           <p className="text-lg">No reviews yet</p>
           <p className="text-sm mt-1">
-            <Link href="/businesses" className="text-[#4A90E2] hover:underline">
+            <Link href="/businesses" className="text-brand-primary hover:underline">
               Check in to a business
             </Link>{" "}
             to write the first one!
@@ -283,7 +283,7 @@ export default function Feed() {
                       <span
                         className={`text-sm font-bold tabular-nums ${
                           netVotes > 0
-                            ? "text-[#4A90E2]"
+                            ? "text-brand-primary"
                             : netVotes < 0
                             ? "text-red-500"
                             : "text-gray-300"
@@ -307,9 +307,9 @@ export default function Feed() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className={`text-sm font-medium flex items-center gap-1.5 ${isOwnReview ? "text-[#4A90E2]" : "text-gray-500 font-mono"}`}>
+                          <span className={`text-sm font-medium flex items-center gap-1.5 ${isOwnReview ? "text-brand-primary" : "text-gray-500 font-mono"}`}>
                             {reviewerName}
-                            {isOwnReview && <span className="text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
+                            {isOwnReview && <span className="text-[10px] bg-blue-50 text-brand-primary px-1.5 py-0.5 rounded-full font-sans">You</span>}
                             {rep !== undefined && <TierBadge rep={Number(rep)} />}
                           </span>
                           <span className="text-xs text-gray-400">
@@ -323,7 +323,7 @@ export default function Feed() {
 
                     <Link
                       href={`/business/${review.businessId}`}
-                      className="text-sm font-semibold text-[#4A90E2] hover:underline"
+                      className="text-sm font-semibold text-brand-primary hover:underline"
                     >
                       {businessNames[review.businessId.toString()] ||
                         `Business #${review.businessId}`}

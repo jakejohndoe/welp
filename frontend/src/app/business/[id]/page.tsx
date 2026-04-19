@@ -155,7 +155,7 @@ export default function BusinessDetail() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <p className="text-gray-500">Business not found.</p>
-        <Link href="/businesses" className="text-[#4A90E2] hover:underline mt-4 inline-block">
+        <Link href="/businesses" className="text-brand-primary hover:underline mt-4 inline-block">
           Back to businesses
         </Link>
       </div>
@@ -169,14 +169,14 @@ export default function BusinessDetail() {
       <TxLoadingModal open={checkInInFlight} title="Checking in..." subtitle="Recording your visit on-chain" />
       <Link
         href="/businesses"
-        className="text-sm text-gray-400 hover:text-[#4A90E2] mb-6 inline-flex items-center gap-1 transition"
+        className="text-sm text-gray-400 hover:text-brand-primary mb-6 inline-flex items-center gap-1 transition"
       >
         <span>&larr;</span> All Businesses
       </Link>
 
       {/* Business header card */}
       <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 overflow-hidden mb-8">
-        <div className="h-32 bg-gradient-to-r from-[#4A90E2] to-blue-500" />
+        <div className="h-32 bg-gradient-to-r from-brand-primary to-blue-500" />
         <div className="p-6 -mt-10">
           <div className="flex items-end justify-between">
             <div className="flex items-end gap-4">
@@ -212,7 +212,7 @@ export default function BusinessDetail() {
                     className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                       isCheckedIn
                         ? "bg-green-50 text-green-600 border-2 border-green-200"
-                        : "bg-[#4A90E2] hover:bg-[#357ABD] text-white shadow-[0_6px_18px_-6px_rgba(118,75,162,0.45)]"
+                        : "bg-brand-primary hover:bg-brand-hover text-white shadow-[0_6px_18px_-6px_rgba(118,75,162,0.45)]"
                     } disabled:opacity-70`}
                   >
                     {isCheckedIn ? "Checked In ✓" : "Check In"}
@@ -220,7 +220,7 @@ export default function BusinessDetail() {
                   {isCheckedIn && (
                     <Link
                       href={`/review?businessId=${params.id}&businessName=${encodeURIComponent(name)}`}
-                      className="px-8 py-3 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-sm font-semibold text-gray-900 transition-all duration-300 shadow-[0_6px_18px_-6px_rgba(118,75,162,0.35)]"
+                      className="px-8 py-3 rounded-xl bg-brand-yellow hover:bg-brand-yellow-hover text-sm font-semibold text-gray-900 transition-all duration-300 shadow-[0_6px_18px_-6px_rgba(118,75,162,0.35)]"
                     >
                       Write a Review
                     </Link>
@@ -264,9 +264,9 @@ export default function BusinessDetail() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-sm font-medium flex items-center gap-1.5 ${isOwnReview ? "text-[#4A90E2]" : "text-gray-600 font-mono"}`}>
+                      <span className={`text-sm font-medium flex items-center gap-1.5 ${isOwnReview ? "text-brand-primary" : "text-gray-600 font-mono"}`}>
                         {reviewerName}
-                        {isOwnReview && <span className="text-[10px] bg-blue-50 text-[#4A90E2] px-1.5 py-0.5 rounded-full font-sans">You</span>}
+                        {isOwnReview && <span className="text-[10px] bg-blue-50 text-brand-primary px-1.5 py-0.5 rounded-full font-sans">You</span>}
                         {reputations[review.reviewer] !== undefined && <TierBadge rep={reputations[review.reviewer]} />}
                       </span>
                       <span className="text-xs text-gray-400">
@@ -286,7 +286,7 @@ export default function BusinessDetail() {
                         <span
                           className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                             netVotes > 0
-                              ? "bg-blue-50 text-[#4A90E2]"
+                              ? "bg-blue-50 text-brand-primary"
                               : netVotes < 0
                               ? "bg-red-50 text-red-500"
                               : "bg-gray-50 text-gray-400"

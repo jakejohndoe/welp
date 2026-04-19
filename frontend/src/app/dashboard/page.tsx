@@ -208,7 +208,7 @@ export default function Dashboard() {
       {showGettingStarted && (
         <div className="rounded-[1.5rem] bg-gradient-to-r from-blue-50 to-amber-50 border-2 border-blue-100 p-6 mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#F5D033] flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-full bg-brand-yellow flex items-center justify-center flex-shrink-0">
               <span className="text-xl">⭐</span>
             </div>
             <div className="flex-1">
@@ -219,7 +219,7 @@ export default function Dashboard() {
             </div>
             <Link
               href="/businesses"
-              className="px-5 py-2.5 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white text-sm font-semibold transition-all duration-300 flex-shrink-0"
+              className="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white text-sm font-semibold transition-all duration-300 flex-shrink-0"
             >
               Find a Business
             </Link>
@@ -251,7 +251,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">📍 Businesses Reviewed</span>
           </div>
-          <p className="text-3xl font-bold text-[#4A90E2]">{uniqueBusinesses}</p>
+          <p className="text-3xl font-bold text-brand-primary">{uniqueBusinesses}</p>
           <p className="text-sm text-gray-400 mt-1">Unique places</p>
         </div>
 
@@ -259,7 +259,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">✏️ Reviews Written</span>
           </div>
-          <p className="text-3xl font-bold text-[#4A90E2]">{userReviews.length}</p>
+          <p className="text-3xl font-bold text-brand-primary">{userReviews.length}</p>
           <p className="text-sm text-gray-400 mt-1">On-chain reviews</p>
         </div>
 
@@ -267,7 +267,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">🪙 WELP Balance</span>
           </div>
-          <p className="text-3xl font-bold text-[#4A90E2]">{balanceNum.toFixed(0)}</p>
+          <p className="text-3xl font-bold text-brand-primary">{balanceNum.toFixed(0)}</p>
           <p className="text-sm text-gray-400 mt-1">{balanceNum > 0 ? "WELP tokens earned" : "Earn by writing reviews"}</p>
           {balanceNum > 0 && welpPriceUsd && (
             <p className="text-xs text-gray-400 mt-0.5">
@@ -280,7 +280,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">⭐ Reputation</span>
           </div>
-          <p className="text-3xl font-bold text-[#4A90E2]">{rep}</p>
+          <p className="text-3xl font-bold text-brand-primary">{rep}</p>
           <p className="text-sm text-gray-400 mt-1">{tier.name} tier</p>
         </div>
       </div>
@@ -300,7 +300,7 @@ export default function Dashboard() {
               {userReviews.slice(0, 5).map((review) => (
                 <div key={Number(review.id)} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div>
-                    <Link href={`/business/${review.businessId}`} className="text-sm font-medium text-[#4A90E2] hover:underline">
+                    <Link href={`/business/${review.businessId}`} className="text-sm font-medium text-brand-primary hover:underline">
                       {businessNames[review.businessId.toString()] || `Business #${review.businessId}`}
                     </Link>
                     <p className="text-xs text-gray-400">
@@ -327,21 +327,21 @@ export default function Dashboard() {
             </button>
             <Link
               href="/businesses"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#4A90E2] transition-all text-center"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-brand-primary transition-all text-center"
             >
               <span className="text-lg">✍️</span>
               <span className="text-sm font-medium text-gray-700">Write Review</span>
             </Link>
             <Link
               href="/businesses"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#4A90E2] transition-all text-center"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-brand-primary transition-all text-center"
             >
               <span className="text-lg">📍</span>
               <span className="text-sm font-medium text-gray-700">Find Places</span>
             </Link>
             <Link
               href="/feed"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-[#4A90E2] transition-all text-center"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-brand-primary transition-all text-center"
             >
               <span className="text-lg">📰</span>
               <span className="text-sm font-medium text-gray-700">View Feed</span>
@@ -363,7 +363,7 @@ export default function Dashboard() {
               <Link
                 key={i}
                 href={`/business/${i}`}
-                className="flex-shrink-0 w-40 rounded-xl border-2 border-gray-100 p-3 hover:border-[#4A90E2] transition-all"
+                className="flex-shrink-0 w-40 rounded-xl border-2 border-gray-100 p-3 hover:border-brand-primary transition-all"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <img src={bizAvatar} alt="" className="w-8 h-8 rounded-full" />
@@ -372,7 +372,7 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-400 truncate">{category}</p>
                   </div>
                 </div>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-[#4A90E2]">View →</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-brand-primary">View →</span>
               </Link>
             );
           })}
@@ -404,7 +404,7 @@ export default function Dashboard() {
             </p>
             <button
               onClick={() => setShowTierUp(null)}
-              className="w-full py-3 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold transition-all duration-300"
+              className="w-full py-3 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold transition-all duration-300"
             >
               Keep it up!
             </button>
