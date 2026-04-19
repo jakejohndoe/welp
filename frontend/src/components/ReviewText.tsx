@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ExternalLink } from "lucide-react";
 import { ipfsUrl } from "@/lib/pinata";
 
 export function ReviewText({ ipfsHash }: { ipfsHash: string }) {
@@ -8,9 +9,13 @@ export function ReviewText({ ipfsHash }: { ipfsHash: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const isPlaceholder = !ipfsHash || ipfsHash.startsWith("QmPlaceholder");
+  const verifyUrl = isPlaceholder
+    ? null
+    : `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+
   useEffect(() => {
-    // Handle placeholder/invalid IPFS hashes
-    if (!ipfsHash || ipfsHash.startsWith('QmPlaceholder')) {
+    if (isPlaceholder) {
       setText("Review submitted successfully (content not stored on IPFS)");
       setLoading(false);
       return;
@@ -41,15 +46,43 @@ export function ReviewText({ ipfsHash }: { ipfsHash: string }) {
       });
 
     return () => controller.abort();
-  }, [ipfsHash]);
+  }, [ipfsHash, isPlaceholder]);
 
   if (loading) {
     return <p className="text-sm text-gray-300 mt-2 animate-pulse">Loading review...</p>;
   }
 
   if (error || !text) {
-    return <p className="text-sm text-gray-300 mt-2 italic">Review content unavailable</p>;
+    return (
+      <div className="mt-2">
+        <p className="text-sm text-gray-300 italic">Review content unavailable</p>
+        {verifyUrl && (
+          <a
+            href={verifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-brand-primary transition mt-1"
+          >
+            View on IPFS <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+    );
   }
 
-  return <p className="text-sm text-gray-600 mt-2 leading-relaxed">{text}</p>;
+  return (
+    <div className="mt-2">
+      <p className="text-sm text-gray-600 leading-relaxed">{text}</p>
+      {verifyUrl && (
+        <a
+          href={verifyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-brand-primary transition mt-1.5"
+        >
+          View on IPFS <ExternalLink className="h-3 w-3" />
+        </a>
+      )}
+    </div>
+  );
 }

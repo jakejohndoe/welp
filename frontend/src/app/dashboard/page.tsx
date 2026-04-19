@@ -310,7 +310,7 @@ export default function Dashboard() {
               ⭐ Reputation
               <Info className="h-3 w-3 text-gray-400 cursor-help" />
               <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 bg-gray-900/90 backdrop-blur-sm text-white text-xs rounded-lg w-60 text-center opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 font-normal normal-case">
-                On-chain reputation. +1 per upvote received on your reviews, -1 per downvote. Tier up at 20.
+                On-chain reputation. +1 per upvote received on your reviews, -1 per downvote. Silver at 5, Gold at 20.
                 <span className="absolute left-1/2 -translate-x-1/2 bottom-full w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-900/90" />
               </span>
             </span>

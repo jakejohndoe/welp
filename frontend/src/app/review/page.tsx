@@ -15,6 +15,7 @@ import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { formatUnits } from "viem";
 import { TxLoadingModal } from "@/components/TxLoadingModal";
+import { Info } from "lucide-react";
 
 export default function WriteReviewPage() {
   return (
@@ -102,8 +103,8 @@ function WriteReview() {
 
     try {
       setUploading(true);
-      let ipfsHash = "";
 
+      let ipfsHash: string;
       try {
         ipfsHash = await uploadToPinata({
           text: reviewText,
@@ -111,14 +112,13 @@ function WriteReview() {
           businessId: Number(businessId),
           reviewer: address,
         });
-        toast.success("Review text uploaded to IPFS!");
       } catch {
-        ipfsHash = `QmPlaceholder${Date.now()}`;
-        toast("Pinata not configured — using placeholder IPFS hash.", {
-          icon: "⚠️",
-        });
+        setUploading(false);
+        toast.error("Review upload failed. Please try again.");
+        return;
       }
 
+      toast.success("Review text uploaded to IPFS!");
       setUploading(false);
 
       writeContract({
@@ -282,13 +282,19 @@ function WriteReview() {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={rating === 0 || isPending || uploading}
-            className="w-full py-3.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)]"
-          >
-            Submit Review
-          </button>
+          <div className="group relative">
+            <button
+              type="submit"
+              disabled={rating === 0 || isPending || uploading}
+              className="w-full py-3.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)] inline-flex items-center justify-center gap-2"
+            >
+              Submit Review
+              <Info className="h-3.5 w-3.5 opacity-70" />
+            </button>
+            <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900/90 backdrop-blur-sm text-white text-xs rounded-lg w-64 text-center opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 font-normal normal-case">
+              You can review each business once every 48 hours.
+            </span>
+          </div>
         </form>
       </div>
     </div>

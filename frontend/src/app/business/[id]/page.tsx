@@ -17,6 +17,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { ReviewText } from "@/components/ReviewText";
 import { TierBadge } from "@/components/TierBadge";
 import { TxLoadingModal } from "@/components/TxLoadingModal";
+import { Info } from "lucide-react";
 
 function getDicebearUrl(seed: string) {
   return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
@@ -206,17 +207,23 @@ export default function BusinessDetail() {
             <div className="flex gap-3">
               {isConnected && (
                 <>
-                  <button
-                    onClick={handleCheckIn}
-                    disabled={checkInInFlight || isCheckedIn}
-                    className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                      isCheckedIn
-                        ? "bg-green-50 text-green-600 border-2 border-green-200"
-                        : "bg-brand-primary hover:bg-brand-hover text-white shadow-[0_6px_18px_-6px_rgba(118,75,162,0.45)]"
-                    } disabled:opacity-70`}
-                  >
-                    {isCheckedIn ? "Checked In ✓" : "Check In"}
-                  </button>
+                  <div className="group relative">
+                    <button
+                      onClick={handleCheckIn}
+                      disabled={checkInInFlight || isCheckedIn}
+                      className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 inline-flex items-center gap-1.5 ${
+                        isCheckedIn
+                          ? "bg-green-50 text-green-600 border-2 border-green-200"
+                          : "bg-brand-primary hover:bg-brand-hover text-white shadow-[0_6px_18px_-6px_rgba(118,75,162,0.45)]"
+                      } disabled:opacity-70`}
+                    >
+                      {isCheckedIn ? "Checked In ✓" : "Check In"}
+                      <Info className="h-3.5 w-3.5 opacity-70" />
+                    </button>
+                    <span className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900/90 backdrop-blur-sm text-white text-xs rounded-lg w-64 text-center opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 font-normal normal-case">
+                      Check in once per hour per business. After checking in, you have 24 hours to submit a review.
+                    </span>
+                  </div>
                   {isCheckedIn && (
                     <Link
                       href={`/review?businessId=${params.id}&businessName=${encodeURIComponent(name)}`}
