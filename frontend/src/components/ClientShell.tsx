@@ -16,11 +16,11 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="flex-1">{children}</main>
       {!isWelcome && (
-        <footer className="border-t border-gray-200 py-8 mt-8">
+        <footer className="border-t border-gray-200 py-10 mt-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <Image src="/logos/welp-logo-adblue.png" alt="welp" width={100} height={32} className="h-8 w-auto opacity-60" />
+                <Image src="/logos/welp-logo-adblue.png" alt="welp" width={300} height={96} className="h-24 w-auto" priority={false} />
                 <span className="text-gray-400 text-sm">&copy; 2026 Welp</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
