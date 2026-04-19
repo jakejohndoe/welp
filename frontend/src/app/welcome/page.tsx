@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useAccount, useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useProfile } from "@/hooks/useProfile";
 import { WELP_COIN_SVG, WelpCoin } from "@/components/WelpCoin";
 
 const GRADIENT = "linear-gradient(135deg, #667eea 0%, #5a4fcf 25%, #764ba2 50%, #6B73D1 75%, #4A90E2 100%)";
@@ -323,8 +322,6 @@ function FloatingCoins() {
 export default function Welcome() {
   const { address, isConnected } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
-  const router = useRouter();
-  const { profile, loaded } = useProfile(address);
   const learnMoreRef = useRef<HTMLDivElement>(null);
   const parallaxRef = useRef<HTMLDivElement>(null);
 
@@ -374,15 +371,6 @@ export default function Welcome() {
       body.style.minHeight = prevBodyMin;
     };
   }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    if (isConnected && profile) {
-      router.replace("/dashboard");
-    } else if (isConnected && !profile) {
-      router.replace("/onboarding");
-    }
-  }, [isConnected, profile, loaded, router]);
 
   return (
     <div className="relative overflow-hidden">
@@ -444,14 +432,28 @@ export default function Welcome() {
           at local businesses in your neighborhood.
         </p>
 
-        {/* CTA with sheen */}
-        <button
-          onClick={() => connect({ connector: injected() })}
-          className="btn-sheen px-10 py-4 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-gray-900 text-lg font-bold transition-all duration-300 shadow-lg hover:shadow-[0_0_30px_rgba(245,208,51,0.5)] hover:scale-[1.05]"
-          style={{ pointerEvents: "auto" }}
-        >
-          Connect Wallet
-        </button>
+        {/* CTA with sheen -- Enter App when connected, Connect Wallet otherwise */}
+        {isConnected ? (
+          <div className="flex flex-col sm:flex-row items-center gap-3" style={{ pointerEvents: "auto" }}>
+            <Link
+              href="/dashboard"
+              className="btn-sheen px-10 py-4 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-gray-900 text-lg font-bold transition-all duration-300 shadow-lg hover:shadow-[0_0_30px_rgba(245,208,51,0.5)] hover:scale-[1.05]"
+            >
+              Enter App →
+            </Link>
+            <span className="px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-mono">
+              {address?.slice(0, 6)}...{address?.slice(-4)}
+            </span>
+          </div>
+        ) : (
+          <button
+            onClick={() => connect({ connector: injected() })}
+            className="btn-sheen px-10 py-4 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-gray-900 text-lg font-bold transition-all duration-300 shadow-lg hover:shadow-[0_0_30px_rgba(245,208,51,0.5)] hover:scale-[1.05]"
+            style={{ pointerEvents: "auto" }}
+          >
+            Connect Wallet
+          </button>
+        )}
 
         {/* Trust badges with tooltips */}
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-10" style={{ pointerEvents: "auto" }}>
