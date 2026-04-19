@@ -15,6 +15,7 @@ import { useProfile } from "@/hooks/useProfile";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
+import { Info } from "lucide-react";
 
 function getTierInfo(rep: number) {
   if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
@@ -238,7 +239,7 @@ export default function Dashboard() {
               style={{ width: `${Math.min(100, Math.max(2, (rep / t3Threshold) * 100))}%` }}
             />
           </div>
-          <span className="text-sm text-gray-400">{rep} XP / {t3Threshold}</span>
+          <span className="text-sm text-gray-400">{rep} Reputation / {t3Threshold}</span>
         </div>
         <div className="text-sm text-gray-400">
           {rep >= 20 ? "Elite Reviewer" : rep >= 5 ? "Rising Reviewer" : "New Reviewer"}
@@ -278,7 +279,14 @@ export default function Dashboard() {
 
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-600">⭐ Reputation</span>
+            <span className="group relative inline-flex items-center gap-1 text-sm text-gray-600">
+              ⭐ Reputation
+              <Info className="h-3 w-3 text-gray-400 cursor-help" />
+              <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 bg-gray-900/90 backdrop-blur-sm text-white text-xs rounded-lg w-60 text-center opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 font-normal normal-case">
+                On-chain reputation. +1 per upvote received on your reviews, -1 per downvote. Tier up at 20.
+                <span className="absolute left-1/2 -translate-x-1/2 bottom-full w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-900/90" />
+              </span>
+            </span>
           </div>
           <p className="text-3xl font-bold text-brand-primary">{rep}</p>
           <p className="text-sm text-gray-400 mt-1">{tier.name} tier</p>
