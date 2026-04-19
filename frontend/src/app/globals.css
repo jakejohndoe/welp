@@ -93,3 +93,17 @@ h1, h2, h3, h4, h5, h6 {
 .animate-fade-slide-up {
   animation: fade-slide-up 0.3s ease forwards;
 }
+
+/* Wave from the wrist (transform-origin bottom-right). Two cycles then settle. */
+@keyframes wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(-15deg); }
+  20%, 40% { transform: rotate(15deg); }
+  50% { transform: rotate(0deg); }
+}
+
+.animate-wave {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: wave 1.2s ease-in-out;
+}

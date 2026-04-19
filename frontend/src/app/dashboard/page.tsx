@@ -15,6 +15,7 @@ import { useProfile } from "@/hooks/useProfile";
 import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { Info, Pencil } from "lucide-react";
+import { CountUp } from "@/components/CountUp";
 
 function relativeTime(unixSec: number): string {
   const diff = Math.max(0, Date.now() / 1000 - unixSec);
@@ -132,6 +133,7 @@ export default function Dashboard() {
   }, [userReviews.length, profile, markReviewed]);
 
   const [showTierUp, setShowTierUp] = useState<{ name: string; reward: number } | null>(null);
+  const [barWidth, setBarWidth] = useState(0);
 
   const fireConfetti = useCallback(() => {
     const end = Date.now() + 1500;
@@ -142,6 +144,17 @@ export default function Dashboard() {
     };
     frame();
   }, []);
+
+  // Progress bar animates from 0 on mount: render at 0 first, set the
+  // target width one frame later so the CSS transition plays.
+  useEffect(() => {
+    const r = Number(reputation || 0);
+    const threshold =
+      tierData?.[1]?.status === "success" ? Number(tierData[1].result) : 20;
+    const target = Math.min(100, Math.max(2, (r / threshold) * 100));
+    const raf = requestAnimationFrame(() => setBarWidth(target));
+    return () => cancelAnimationFrame(raf);
+  }, [reputation, tierData]);
 
   // Tier-up detection
   useEffect(() => {
@@ -206,7 +219,7 @@ export default function Dashboard() {
         />
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {profile.displayName}! 👋
+            Welcome back, {profile.displayName}! <span className="animate-wave">👋</span>
           </h1>
           <p className="text-gray-500 mt-0.5">
             You&apos;ve earned {balanceNum.toFixed(0)} WELP tokens. Keep exploring to earn more!
@@ -244,8 +257,8 @@ export default function Dashboard() {
           <span className={`font-semibold ${tier.color}`}>{tier.name}</span>
           <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-full bg-gradient-to-r ${tier.barColor} rounded-full transition-all duration-500`}
-              style={{ width: `${Math.min(100, Math.max(2, (rep / t3Threshold) * 100))}%` }}
+              className={`h-full bg-gradient-to-r ${tier.barColor} rounded-full transition-all duration-700 ease-out`}
+              style={{ width: `${barWidth}%` }}
             />
           </div>
           <span className="text-sm text-gray-400">{rep} Reputation / {t3Threshold}</span>
@@ -257,27 +270,27 @@ export default function Dashboard() {
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">📍 Businesses Reviewed</span>
           </div>
-          <p className="text-3xl font-bold text-brand-primary">{uniqueBusinesses}</p>
+          <p className="text-3xl font-bold text-brand-primary"><CountUp value={uniqueBusinesses} /></p>
           <p className="text-sm text-gray-400 mt-1">Unique places</p>
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">✏️ Reviews Written</span>
           </div>
-          <p className="text-3xl font-bold text-brand-primary">{userReviews.length}</p>
+          <p className="text-3xl font-bold text-brand-primary"><CountUp value={userReviews.length} /></p>
           <p className="text-sm text-gray-400 mt-1">On-chain reviews</p>
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-600">🪙 WELP Balance</span>
           </div>
-          <p className="text-3xl font-bold text-brand-primary">{balanceNum.toFixed(0)}</p>
+          <p className="text-3xl font-bold text-brand-primary"><CountUp value={Math.round(balanceNum)} /></p>
           <p className="text-sm text-gray-400 mt-1">{balanceNum > 0 ? "WELP tokens earned" : "Earn by writing reviews"}</p>
           {balanceNum > 0 && welpPriceUsd && (
             <p className="text-xs text-gray-400 mt-0.5">
@@ -286,7 +299,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-3">
             <span className="group relative inline-flex items-center gap-1 text-sm text-gray-600">
               ⭐ Reputation
@@ -297,7 +310,7 @@ export default function Dashboard() {
               </span>
             </span>
           </div>
-          <p className="text-3xl font-bold text-brand-primary">{rep}</p>
+          <p className="text-3xl font-bold text-brand-primary"><CountUp value={rep} /></p>
           <p className="text-sm text-gray-400 mt-1">{tier.name} tier</p>
         </div>
       </div>
