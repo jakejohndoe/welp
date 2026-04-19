@@ -15,7 +15,17 @@ import { useProfile } from "@/hooks/useProfile";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
-import { Info } from "lucide-react";
+import { Info, Pencil } from "lucide-react";
+
+function relativeTime(unixSec: number): string {
+  const diff = Math.max(0, Date.now() / 1000 - unixSec);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 86400 * 365) return `${Math.floor(diff / (86400 * 30))}mo ago`;
+  return `${Math.floor(diff / (86400 * 365))}y ago`;
+}
 
 function getTierInfo(rep: number) {
   if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
@@ -305,19 +315,30 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {userReviews.slice(0, 5).map((review) => (
-                <div key={Number(review.id)} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                  <div>
-                    <Link href={`/business/${review.businessId}`} className="text-sm font-medium text-brand-primary hover:underline">
-                      {businessNames[review.businessId.toString()] || `Business #${review.businessId}`}
-                    </Link>
-                    <p className="text-xs text-gray-400">
-                      {"★".repeat(review.rating)} · {new Date(Number(review.timestamp) * 1000).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-300">▲{Number(review.upvotes)}</span>
-                </div>
-              ))}
+              {userReviews.slice(0, 5).map((review) => {
+                const bizName = businessNames[review.businessId.toString()] || `Business #${review.businessId}`;
+                return (
+                  <Link
+                    key={Number(review.id)}
+                    href={`/business/${review.businessId}`}
+                    className="group flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary/30 transition-all duration-200"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-blue-50 text-brand-primary flex items-center justify-center flex-shrink-0">
+                      <Pencil className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-700 truncate">
+                        You reviewed <span className="font-semibold text-gray-900 group-hover:text-brand-primary transition-colors">{bizName}</span>
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">{relativeTime(Number(review.timestamp))}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs text-amber-400 tracking-wide">{"★".repeat(review.rating)}</p>
+                      <p className="text-[10px] text-gray-300 mt-0.5">▲ {Number(review.upvotes)}</p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
