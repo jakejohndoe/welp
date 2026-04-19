@@ -12,7 +12,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useProfile } from "@/hooks/useProfile";
-import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { Info, Pencil } from "lucide-react";
@@ -343,39 +342,15 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6">
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6 flex flex-col">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => toast("QR scanning coming soon!", { icon: "📱" })}
-              className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-gray-50 border-2 border-gray-100 text-center cursor-default"
-            >
-              <span className="text-lg text-gray-300">📱</span>
-              <span className="text-sm font-medium text-gray-400">Scan QR Code</span>
-              <span className="text-[10px] text-gray-400">Coming Soon</span>
-            </button>
-            <Link
-              href="/businesses"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-brand-primary transition-all text-center"
-            >
-              <span className="text-lg">✍️</span>
-              <span className="text-sm font-medium text-gray-700">Write Review</span>
-            </Link>
-            <Link
-              href="/businesses"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-brand-primary transition-all text-center"
-            >
-              <span className="text-lg">📍</span>
-              <span className="text-sm font-medium text-gray-700">Find Places</span>
-            </Link>
-            <Link
-              href="/feed"
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-100 hover:border-brand-primary transition-all text-center"
-            >
-              <span className="text-lg">📰</span>
-              <span className="text-sm font-medium text-gray-700">View Feed</span>
-            </Link>
-          </div>
+          <Link
+            href="/review"
+            className="group flex flex-1 items-center justify-center gap-3 w-full rounded-xl bg-brand-primary hover:bg-brand-hover hover:-translate-y-0.5 text-white font-semibold transition-all duration-200 shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)] min-h-[8rem] px-6"
+          >
+            <Pencil className="h-6 w-6 transition-transform group-hover:-rotate-6" />
+            <span className="text-lg">Write a Review</span>
+          </Link>
         </div>
       </div>
 
