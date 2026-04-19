@@ -169,7 +169,7 @@ export default function BusinessDetail() {
       <TxLoadingModal open={checkInInFlight} title="Checking in..." subtitle="Recording your visit on-chain" />
       <Link
         href="/businesses"
-        className="text-sm text-gray-400 hover:text-brand-primary mb-6 inline-flex items-center gap-1 transition"
+        className="text-sm text-white/80 hover:text-white mb-6 inline-flex items-center gap-1 transition"
       >
         <span>&larr;</span> All Businesses
       </Link>

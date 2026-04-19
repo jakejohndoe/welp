@@ -221,7 +221,7 @@ function WriteReview() {
       />
       <Link
         href={`/business/${businessId}`}
-        className="text-sm text-gray-400 hover:text-brand-primary mb-6 inline-flex items-center gap-1 transition"
+        className="text-sm text-white/80 hover:text-white mb-6 inline-flex items-center gap-1 transition"
       >
         <span>&larr;</span> Back to {businessName}
       </Link>

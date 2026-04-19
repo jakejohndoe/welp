@@ -9,14 +9,19 @@ import { PageBackground } from "./PageBackground";
 export function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isWelcome = pathname === "/welcome";
+  const isOnboarding = pathname === "/onboarding";
+  // Onboarding is intentionally cream (it's a focused single-task flow),
+  // welcome paints its own gradient. Every other authenticated route gets
+  // the shared brand gradient from <PageBackground />.
+  const showGradient = !isWelcome && !isOnboarding;
 
   return (
     <Providers>
-      {!isWelcome && <PageBackground />}
+      {showGradient && <PageBackground />}
       <Navbar />
       <main className="flex-1">{children}</main>
       {!isWelcome && (
-        <footer className="border-t border-gray-200 py-10 mt-8">
+        <footer className={`${showGradient ? "bg-white/85 backdrop-blur-md border-t border-white/40" : "border-t border-gray-200"} py-10 mt-8`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">

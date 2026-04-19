@@ -218,10 +218,10 @@ export default function Dashboard() {
           className="rounded-full"
         />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-white drop-shadow-sm">
             Welcome back, {profile.displayName}! <span className="animate-wave">👋</span>
           </h1>
-          <p className="text-gray-500 mt-0.5">
+          <p className="text-white/85 mt-0.5">
             You&apos;ve earned {balanceNum.toFixed(0)} WELP tokens. Keep exploring to earn more!
           </p>
         </div>
@@ -250,21 +250,24 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Tier Progress */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-        <div className="flex items-center gap-3 flex-1">
-          <span className="text-lg">{tier.emoji}</span>
-          <span className={`font-semibold ${tier.color}`}>{tier.name}</span>
-          <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full bg-gradient-to-r ${tier.barColor} rounded-full transition-all duration-700 ease-out`}
-              style={{ width: `${barWidth}%` }}
-            />
+      {/* Tier Progress -- wrapped in a white card so it stays legible
+          on the vivid gradient bg */}
+      <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 px-5 py-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <span className="text-lg">{tier.emoji}</span>
+            <span className={`font-semibold ${tier.color}`}>{tier.name}</span>
+            <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full bg-gradient-to-r ${tier.barColor} rounded-full transition-all duration-700 ease-out`}
+                style={{ width: `${barWidth}%` }}
+              />
+            </div>
+            <span className="text-sm text-gray-500">{rep} Reputation / {t3Threshold}</span>
           </div>
-          <span className="text-sm text-gray-400">{rep} Reputation / {t3Threshold}</span>
-        </div>
-        <div className="text-sm text-gray-400">
-          {rep >= 20 ? "Elite Reviewer" : rep >= 5 ? "Rising Reviewer" : "New Reviewer"}
+          <div className="text-sm text-gray-400">
+            {rep >= 20 ? "Elite Reviewer" : rep >= 5 ? "Rising Reviewer" : "New Reviewer"}
+          </div>
         </div>
       </div>
 
@@ -397,8 +400,8 @@ export default function Dashboard() {
       </div>
 
       {/* Wallet info */}
-      <div className="mt-8 text-xs text-gray-400">
-        Connected: <span className="font-mono text-gray-500">{address}</span>
+      <div className="mt-8 text-xs text-white/70">
+        Connected: <span className="font-mono text-white/85">{address}</span>
       </div>
 
       {/* Tier-up celebration modal */}
