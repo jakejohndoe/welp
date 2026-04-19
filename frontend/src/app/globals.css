@@ -21,6 +21,7 @@
    can paint above it. Body bg stays transparent. */
 html {
   background-color: hsl(36, 50%, 98%);
+  scroll-behavior: smooth;
 }
 
 html, body {

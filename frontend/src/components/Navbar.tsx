@@ -33,6 +33,7 @@ export function Navbar() {
         { href: "/dashboard", label: "Dashboard" },
         { href: "/businesses", label: "Explore Businesses" },
         { href: "/feed", label: "Feed" },
+        { href: "/docs", label: "Docs" },
       ]
     : [];
 
@@ -107,9 +108,9 @@ export function Navbar() {
                 </div>
               ) : isWelcome ? (
                 <div className="flex items-center gap-6">
-                  <a href="#" className="hidden sm:inline text-white/80 hover:text-white text-sm font-medium transition-colors">
+                  <Link href="/docs" className="hidden sm:inline text-white/80 hover:text-white text-sm font-medium transition-colors">
                     Docs
-                  </a>
+                  </Link>
                   <a href="#" className="hidden sm:inline text-white/80 hover:text-white text-sm font-medium transition-colors">
                     Token
                   </a>
