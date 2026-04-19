@@ -15,7 +15,6 @@ import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { formatUnits } from "viem";
 import { TxLoadingModal } from "@/components/TxLoadingModal";
-import { PageBackground } from "@/components/PageBackground";
 
 export default function WriteReviewPage() {
   return (
@@ -215,7 +214,6 @@ function WriteReview() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageBackground />
       <TxLoadingModal
         open={txInFlight}
         title={modalTitle}

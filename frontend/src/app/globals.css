@@ -8,12 +8,22 @@
   --color-brand-yellow: #F5D033;
   --color-brand-yellow-hover: #E6C029;
   --color-brand-success: #10B981;
+  --color-brand-purple: #764ba2;
+  --color-brand-cream: hsl(36, 50%, 98%);
+  --color-brand-bronze: #CD7F32;
+  --color-brand-silver: #C0C0C0;
+  --color-brand-gold: #FFD700;
   --font-sans: var(--font-nunito), "Nunito", sans-serif;
   --font-heading: var(--font-fredoka), "Fredoka", sans-serif;
 }
 
-html, body {
+/* Cream lives on html only so PageBackground (fixed, negative z-index)
+   can paint above it. Body bg stays transparent. */
+html {
   background-color: hsl(36, 50%, 98%);
+}
+
+html, body {
   color: #1A1A1A;
   font-family: var(--font-sans);
 }

@@ -17,7 +17,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { ReviewText } from "@/components/ReviewText";
 import { TierBadge } from "@/components/TierBadge";
 import { TxLoadingModal } from "@/components/TxLoadingModal";
-import { PageBackground } from "@/components/PageBackground";
 
 function getDicebearUrl(seed: string) {
   return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
@@ -167,7 +166,6 @@ export default function BusinessDetail() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageBackground />
       <TxLoadingModal open={checkInInFlight} title="Checking in..." subtitle="Recording your visit on-chain" />
       <Link
         href="/businesses"

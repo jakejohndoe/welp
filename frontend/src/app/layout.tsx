@@ -30,12 +30,8 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
-      style={{ backgroundColor: "hsl(36, 50%, 98%)" }}
     >
-      <body
-        className="min-h-full flex flex-col"
-        style={{ backgroundColor: "hsl(36, 50%, 98%)", color: "#1A1A1A" }}
-      >
+      <body className="min-h-full flex flex-col">
         <ClientShellLoader>{children}</ClientShellLoader>
       </body>
     </html>

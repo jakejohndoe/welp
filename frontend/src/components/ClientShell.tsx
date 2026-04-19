@@ -4,6 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Providers } from "./Providers";
 import { Navbar } from "./Navbar";
+import { PageBackground } from "./PageBackground";
 
 export function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,6 +12,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
 
   return (
     <Providers>
+      {!isWelcome && <PageBackground />}
       <Navbar />
       <main className="flex-1">{children}</main>
       {!isWelcome && (

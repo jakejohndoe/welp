@@ -14,7 +14,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
-import { PageBackground } from "@/components/PageBackground";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 
 function getTierInfo(rep: number) {
@@ -154,7 +153,6 @@ export default function Dashboard() {
   if (!loaded || !isConnected || !profile) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <PageBackground />
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 rounded-full bg-gray-100 animate-pulse" />
           <div className="space-y-2">
@@ -187,7 +185,6 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageBackground />
       {/* Welcome Header */}
       <div className="flex items-center gap-4 mb-8">
         <img
