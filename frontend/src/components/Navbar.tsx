@@ -17,9 +17,6 @@ export function Navbar() {
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
   const handleDisconnect = () => {
-    if (address) {
-      localStorage.removeItem(`welp_profile_${address.toLowerCase()}`);
-    }
     disconnect();
     setShowDisconnectModal(false);
     router.push("/welcome");
@@ -145,7 +142,7 @@ export function Navbar() {
               Disconnect Wallet?
             </h2>
             <p className="text-gray-500 text-sm mb-6" style={{ fontFamily: "var(--font-nunito)" }}>
-              Are you sure you want to disconnect? Your local profile data will be cleared.
+              Are you sure you want to disconnect?
             </p>
             <div className="flex gap-3">
               <button
