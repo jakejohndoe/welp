@@ -14,6 +14,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
+import { PageBackground } from "@/components/PageBackground";
+import { useWelpPrice } from "@/hooks/useWelpPrice";
 
 function getTierInfo(rep: number) {
   if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
@@ -25,6 +27,7 @@ export default function Dashboard() {
   const { address, isConnected } = useAccount();
   const router = useRouter();
   const { profile, loaded, markReviewed } = useProfile(address);
+  const { price: welpPriceUsd } = useWelpPrice();
 
   useEffect(() => {
     if (!loaded) return;
@@ -151,6 +154,7 @@ export default function Dashboard() {
   if (!loaded || !isConnected || !profile) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <PageBackground />
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 rounded-full bg-gray-100 animate-pulse" />
           <div className="space-y-2">
@@ -183,6 +187,7 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageBackground />
       {/* Welcome Header */}
       <div className="flex items-center gap-4 mb-8">
         <img
@@ -267,6 +272,11 @@ export default function Dashboard() {
           </div>
           <p className="text-3xl font-bold text-[#4A90E2]">{balanceNum.toFixed(0)}</p>
           <p className="text-sm text-gray-400 mt-1">{balanceNum > 0 ? "WELP tokens earned" : "Earn by writing reviews"}</p>
+          {balanceNum > 0 && welpPriceUsd && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              ≈ ${(balanceNum * welpPriceUsd).toFixed(2)} USD
+            </p>
+          )}
         </div>
 
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5">

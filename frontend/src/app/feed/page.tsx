@@ -16,6 +16,7 @@ import { ReviewText } from "@/components/ReviewText";
 import { TierBadge } from "@/components/TierBadge";
 import { useSmartTransaction } from "@/hooks/useSmartTransaction";
 import { useState } from "react";
+import { PageBackground } from "@/components/PageBackground";
 
 function getDicebearUrl(seed: string) {
   return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
@@ -238,6 +239,7 @@ export default function Feed() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageBackground />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Review Feed</h1>
       <p className="text-gray-500 mb-8">
         All reviews, newest first. Vote to shape reviewer reputation.

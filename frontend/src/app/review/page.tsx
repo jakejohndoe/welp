@@ -14,6 +14,8 @@ import Link from "next/link";
 import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { formatUnits } from "viem";
+import { TxLoadingModal } from "@/components/TxLoadingModal";
+import { PageBackground } from "@/components/PageBackground";
 
 export default function WriteReviewPage() {
   return (
@@ -204,8 +206,21 @@ function WriteReview() {
   }
 
   // --- Review form ---
+  const modalTitle = uploading
+    ? "Uploading to IPFS..."
+    : isPending
+    ? "Confirm in wallet..."
+    : "Submitting review...";
+  const txInFlight = uploading || isPending || (!!txHash && !confirmed);
+
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageBackground />
+      <TxLoadingModal
+        open={txInFlight}
+        title={modalTitle}
+        subtitle={uploading ? "Pinning your review text" : "Earning WELP tokens on-chain"}
+      />
       <Link
         href={`/business/${businessId}`}
         className="text-sm text-gray-400 hover:text-[#4A90E2] mb-6 inline-flex items-center gap-1 transition"
@@ -272,13 +287,9 @@ function WriteReview() {
           <button
             type="submit"
             disabled={rating === 0 || isPending || uploading}
-            className="w-full py-3.5 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-xl bg-[#4A90E2] hover:bg-[#357ABD] text-white font-semibold text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)]"
           >
-            {uploading
-              ? "Uploading to IPFS..."
-              : isPending
-              ? "Confirm in wallet..."
-              : "Submit Review"}
+            Submit Review
           </button>
         </form>
       </div>

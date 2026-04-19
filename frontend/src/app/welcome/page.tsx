@@ -6,6 +6,7 @@ import { injected } from "wagmi/connectors";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
+import { WELP_COIN_SVG, WelpCoin } from "@/components/WelpCoin";
 
 const GRADIENT = "linear-gradient(135deg, #667eea 0%, #5a4fcf 25%, #764ba2 50%, #6B73D1 75%, #4A90E2 100%)";
 const ROTATING_WORDS = ["impact", "value", "worth", "power", "weight", "voice", "reach"];
@@ -28,17 +29,9 @@ const TRUST_BADGES = [
   },
 ];
 
-// ─── Coin SVG markup (wireframe style) ───
-const COIN_SVG = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="16" cy="16" r="14.5" fill="none" stroke="#F5A623" stroke-width="1.8"/>
-  <circle cx="16" cy="16" r="12" fill="none" stroke="#F5A623" stroke-width="0.6"/>
-  <line x1="3.5" y1="9" x2="5" y2="10" stroke="#F5A623" stroke-width="0.5"/>
-  <line x1="2.5" y1="12" x2="4" y2="12.5" stroke="#F5A623" stroke-width="0.5"/>
-  <line x1="2" y1="15" x2="3.5" y2="15.5" stroke="#F5A623" stroke-width="0.5"/>
-  <line x1="2.5" y1="18" x2="4" y2="18.5" stroke="#F5A623" stroke-width="0.5"/>
-  <line x1="3.5" y1="21" x2="5" y2="21.5" stroke="#F5A623" stroke-width="0.5"/>
-  <text x="16" y="21.5" text-anchor="middle" fill="none" stroke="#F5A623" stroke-width="1.2" font-size="14" font-weight="bold" font-family="sans-serif">W</text>
-</svg>`;
+// Coin SVG/animation primitives live in @/components/WelpCoin so the
+// TxLoadingModal and this page share one source of truth.
+const COIN_SVG = WELP_COIN_SVG;
 
 // ─── Interactive coin field ───
 const COIN_COUNT = 38;
@@ -397,14 +390,7 @@ export default function Welcome() {
       {isConnecting && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-6">
-            <div
-              className="w-20 h-20"
-              style={{
-                animation: "coin-flip 1.5s linear infinite",
-                transformStyle: "preserve-3d",
-              }}
-              dangerouslySetInnerHTML={{ __html: COIN_SVG }}
-            />
+            <WelpCoin size={80} animation="flip" />
             <div className="text-center">
               <p className="text-white text-lg font-semibold">Connecting your wallet...</p>
               <p className="text-white/60 text-sm mt-1">This may take a moment</p>
@@ -529,7 +515,7 @@ export default function Welcome() {
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/60 text-xs font-medium">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /><path d="M12 6l-1 6h2l-1 6 4-7h-3l2-5h-3z" fill="#667eea" /></svg>
-              Built on Base
+              Built on Sepolia
             </div>
             <div className="flex items-center gap-4">
               <a href="#" className="text-white/40 hover:text-white/70 transition-colors" aria-label="X (Twitter)">

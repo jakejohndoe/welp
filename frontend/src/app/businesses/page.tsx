@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useReadContract, useReadContracts } from "wagmi";
 import { ADDRESSES, REVIEW_REGISTRY_ABI } from "@/lib/contracts";
 import { useState } from "react";
+import { PageBackground } from "@/components/PageBackground";
 
 const BUSINESS_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -71,6 +72,7 @@ export default function Businesses() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageBackground />
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">

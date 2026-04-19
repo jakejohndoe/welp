@@ -23,7 +23,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /><path d="M12 6l-1 6h2l-1 6 4-7h-3l2-5h-3z" fill="#667eea" /></svg>
-                Built on Base
+                Built on Sepolia
               </div>
               <div className="flex items-center gap-4">
                 <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="X (Twitter)">

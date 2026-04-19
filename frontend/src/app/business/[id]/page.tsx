@@ -11,11 +11,13 @@ import {
 } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
 import { ADDRESSES, REVIEW_REGISTRY_ABI } from "@/lib/contracts";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { ReviewText } from "@/components/ReviewText";
 import { TierBadge } from "@/components/TierBadge";
+import { TxLoadingModal } from "@/components/TxLoadingModal";
+import { PageBackground } from "@/components/PageBackground";
 
 function getDicebearUrl(seed: string) {
   return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
@@ -107,13 +109,20 @@ export default function BusinessDetail() {
     hash: checkInHash,
   });
 
-  // After check-in confirms, invalidate the lastCheckIn query so isCheckedIn updates
+  // Track which tx hash we've already toasted so wagmi's query invalidation
+  // (which can regenerate queryKey refs and re-fire this effect) can't fire
+  // a second toast for the same check-in.
+  const toastedHashRef = useRef<`0x${string}` | undefined>(undefined);
+
   useEffect(() => {
-    if (checkInConfirmed) {
+    if (checkInConfirmed && checkInHash && toastedHashRef.current !== checkInHash) {
+      toastedHashRef.current = checkInHash;
       toast.success("Checked in! You can now write a review.");
       queryClient.invalidateQueries({ queryKey: checkInQueryKey });
     }
-  }, [checkInConfirmed, queryClient, checkInQueryKey]);
+  }, [checkInConfirmed, checkInHash, queryClient, checkInQueryKey]);
+
+  const checkInInFlight = checkInPending || (!!checkInHash && !checkInConfirmed);
 
   const handleCheckIn = () => {
     doCheckIn({
@@ -158,6 +167,8 @@ export default function BusinessDetail() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageBackground />
+      <TxLoadingModal open={checkInInFlight} title="Checking in..." subtitle="Recording your visit on-chain" />
       <Link
         href="/businesses"
         className="text-sm text-gray-400 hover:text-[#4A90E2] mb-6 inline-flex items-center gap-1 transition"
@@ -199,23 +210,19 @@ export default function BusinessDetail() {
                 <>
                   <button
                     onClick={handleCheckIn}
-                    disabled={checkInPending || isCheckedIn}
+                    disabled={checkInInFlight || isCheckedIn}
                     className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                       isCheckedIn
                         ? "bg-green-50 text-green-600 border-2 border-green-200"
-                        : "bg-[#4A90E2] hover:bg-[#357ABD] text-white"
+                        : "bg-[#4A90E2] hover:bg-[#357ABD] text-white shadow-[0_6px_18px_-6px_rgba(118,75,162,0.45)]"
                     } disabled:opacity-70`}
                   >
-                    {checkInPending
-                      ? "Checking in..."
-                      : isCheckedIn
-                      ? "Checked In ✓"
-                      : "Check In"}
+                    {isCheckedIn ? "Checked In ✓" : "Check In"}
                   </button>
                   {isCheckedIn && (
                     <Link
                       href={`/review?businessId=${params.id}&businessName=${encodeURIComponent(name)}`}
-                      className="px-8 py-3 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-sm font-semibold text-gray-900 transition-all duration-300"
+                      className="px-8 py-3 rounded-xl bg-[#F5D033] hover:bg-[#E6C029] text-sm font-semibold text-gray-900 transition-all duration-300 shadow-[0_6px_18px_-6px_rgba(118,75,162,0.35)]"
                     >
                       Write a Review
                     </Link>
