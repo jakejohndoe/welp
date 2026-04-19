@@ -218,10 +218,10 @@ export default function Dashboard() {
           className="rounded-full"
         />
         <div>
-          <h1 className="text-2xl font-bold text-white drop-shadow-sm">
+          <h1 className="text-2xl font-bold text-gray-900">
             Welcome back, {profile.displayName}! <span className="animate-wave">👋</span>
           </h1>
-          <p className="text-white/85 mt-0.5">
+          <p className="text-gray-500 mt-0.5">
             You&apos;ve earned {balanceNum.toFixed(0)} WELP tokens. Keep exploring to earn more!
           </p>
         </div>
@@ -358,51 +358,61 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6 flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <Link
-            href="/review"
-            className="group flex flex-1 items-center justify-center gap-3 w-full rounded-xl bg-brand-primary hover:bg-brand-hover hover:-translate-y-0.5 text-white font-semibold transition-all duration-200 shadow-[0_8px_22px_-8px_rgba(118,75,162,0.55)] min-h-[8rem] px-6"
-          >
-            <Pencil className="h-6 w-6 transition-transform group-hover:-rotate-6" />
-            <span className="text-lg">Write a Review</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Nearby Businesses */}
-      <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Nearby Businesses</h2>
-        <p className="text-sm text-gray-400 mb-4">Discover great places near you</p>
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {businessesData?.slice(0, 4).map((b, i) => {
-            if (b.status !== "success") return null;
-            const [, name, category] = b.result as unknown as [bigint, string, string, string, boolean];
-            const bizAvatar = `https://api.dicebear.com/9.x/shapes/svg?seed=${name.toLowerCase().replace(/\s+/g, "")}`;
-            return (
-              <Link
-                key={i}
-                href={`/business/${i}`}
-                className="flex-shrink-0 w-40 rounded-xl border-2 border-gray-100 p-3 hover:border-brand-primary transition-all"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <img src={bizAvatar} alt="" className="w-8 h-8 rounded-full" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
-                    <p className="text-xs text-gray-400 truncate">{category}</p>
+        {/* Nearby Businesses -- promoted into the top row so the user
+            always has somewhere to go. Replaces the old Quick Actions
+            panel; Write a Review lives in the FAB at the bottom. */}
+        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-6">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Nearby Businesses</h2>
+              <p className="text-sm text-gray-400">Discover great places near you</p>
+            </div>
+            <Link href="/businesses" className="text-xs text-brand-primary hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+            {businessesData?.slice(0, 4).map((b, i) => {
+              if (b.status !== "success") return null;
+              const [, name, category] = b.result as unknown as [bigint, string, string, string, boolean];
+              const bizAvatar = `https://api.dicebear.com/9.x/shapes/svg?seed=${name.toLowerCase().replace(/\s+/g, "")}`;
+              return (
+                <Link
+                  key={i}
+                  href={`/business/${i}`}
+                  className="flex-shrink-0 w-40 rounded-xl border-2 border-gray-100 p-3 hover:border-brand-primary hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <img src={bizAvatar} alt="" className="w-8 h-8 rounded-full" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                      <p className="text-xs text-gray-400 truncate">{category}</p>
+                    </div>
                   </div>
-                </div>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-brand-primary">View →</span>
-              </Link>
-            );
-          })}
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-brand-primary">View →</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Wallet info */}
-      <div className="mt-8 text-xs text-white/70">
-        Connected: <span className="font-mono text-white/85">{address}</span>
+      <div className="mt-8 text-xs text-gray-400">
+        Connected: <span className="font-mono text-gray-500">{address}</span>
       </div>
+
+      {/* Floating action button: primary action is always one tap away
+          without burning column space on the dashboard. */}
+      <Link
+        href="/review"
+        aria-label="Write a review"
+        title="Write a review"
+        className="fixed bottom-6 right-6 z-40 h-14 pl-5 pr-6 rounded-full bg-brand-primary hover:bg-brand-hover text-white shadow-[0_12px_30px_-8px_rgba(118,75,162,0.6)] flex items-center gap-2 font-semibold transition-all duration-200 hover:-translate-y-0.5"
+      >
+        <Pencil className="h-5 w-5" />
+        <span>Write a Review</span>
+      </Link>
 
       {/* Tier-up celebration modal */}
       {showTierUp && (
