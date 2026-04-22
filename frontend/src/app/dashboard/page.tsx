@@ -16,6 +16,7 @@ import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { Info, Pencil } from "lucide-react";
 import { CountUp } from "@/components/CountUp";
 import { TierProgressCard, getTierInfo } from "@/components/TierProgressCard";
+import { WelpCoin } from "@/components/WelpCoin";
 
 function relativeTime(unixSec: number): string {
   const diff = Math.max(0, Date.now() / 1000 - unixSec);
@@ -226,7 +227,7 @@ export default function Dashboard() {
       <div className="rounded-[1.5rem] bg-gradient-to-r from-blue-50 to-amber-50 border-2 border-blue-100 p-6 mb-8">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-brand-yellow flex items-center justify-center flex-shrink-0">
-            <span className="text-xl">🪙</span>
+            <WelpCoin size={32} animation="none" />
           </div>
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-900">Coin Drop</h2>

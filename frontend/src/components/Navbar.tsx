@@ -38,7 +38,7 @@ export function Navbar() {
         { href: "/businesses", label: "Explore Businesses" },
         { href: "/feed", label: "Feed" },
         { href: "/wallet", label: "Wallet" },
-        { href: "/minigame", label: "Coin Drop", icon: <WelpCoin size={18} animation="none" /> },
+        { href: "/minigame", label: "Coin Drop", icon: <WelpCoin size={22} animation="none" /> },
         { href: "/docs", label: "Docs" },
       ]
     : [];
@@ -75,18 +75,38 @@ export function Navbar() {
                     link.href === "/dashboard"
                       ? pathname === "/dashboard"
                       : pathname.startsWith(link.href);
+                  if (link.icon) {
+                    return (
+                      <div key={link.href} className="group relative">
+                        <Link
+                          href={link.href}
+                          aria-label={`${link.label} minigame`}
+                          className={`px-2.5 py-2 rounded-lg transition-all duration-300 inline-flex items-center ${
+                            isActive
+                              ? "text-brand-primary bg-blue-50"
+                              : "text-gray-700 hover:text-brand-primary hover:bg-blue-50"
+                          }`}
+                        >
+                          {link.icon}
+                        </Link>
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900/90 backdrop-blur-sm text-white text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50">
+                          {link.label}
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-900/90" />
+                        </div>
+                      </div>
+                    );
+                  }
                   return (
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center gap-1.5 ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                         isActive
                           ? "text-brand-primary bg-blue-50"
                           : "text-gray-700 hover:text-brand-primary hover:bg-blue-50"
                       }`}
                     >
-                      {link.icon}
-                      <span>{link.label}</span>
+                      {link.label}
                     </Link>
                   );
                 })}
