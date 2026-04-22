@@ -6,7 +6,6 @@ import {
   ADDRESSES,
   REVIEW_REGISTRY_ABI,
   WELP_TOKEN_ABI,
-  REWARDS_VAULT_ABI,
 } from "@/lib/contracts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import confetti from "canvas-confetti";
 import { useWelpPrice } from "@/hooks/useWelpPrice";
 import { Info, Pencil } from "lucide-react";
 import { CountUp } from "@/components/CountUp";
+import { TierProgressCard, getTierInfo } from "@/components/TierProgressCard";
 
 function relativeTime(unixSec: number): string {
   const diff = Math.max(0, Date.now() / 1000 - unixSec);
@@ -25,14 +25,6 @@ function relativeTime(unixSec: number): string {
   if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}d ago`;
   if (diff < 86400 * 365) return `${Math.floor(diff / (86400 * 30))}mo ago`;
   return `${Math.floor(diff / (86400 * 365))}y ago`;
-}
-
-function getTierInfo(rep: number) {
-  if (rep >= 20) return { name: "Gold", emoji: "🥇", color: "text-amber-600", barColor: "from-amber-400 to-amber-500" };
-  if (rep >= 5) return { name: "Silver", emoji: "🥈", color: "text-blue-600", barColor: "from-blue-400 to-blue-500" };
-  // Bronze desaturated to a warm muted brown so it reads as progress
-  // indicator, not primary visual moment against the soft gradient.
-  return { name: "Bronze", emoji: "🟤", color: "text-[#A67C52]", barColor: "from-[#C9A27A] to-[#A67C52]" };
 }
 
 export default function Dashboard() {
@@ -70,13 +62,6 @@ export default function Dashboard() {
     address: ADDRESSES.ReviewRegistry,
     abi: REVIEW_REGISTRY_ABI,
     functionName: "nextReviewId",
-  });
-
-  const { data: tierData } = useReadContracts({
-    contracts: [
-      { address: ADDRESSES.RewardsVault, abi: REWARDS_VAULT_ABI, functionName: "tier2Threshold" },
-      { address: ADDRESSES.RewardsVault, abi: REWARDS_VAULT_ABI, functionName: "tier3Threshold" },
-    ],
   });
 
   const reviewCount = Number(nextReviewId || 0);
@@ -135,7 +120,6 @@ export default function Dashboard() {
   }, [userReviews.length, profile, markReviewed]);
 
   const [showTierUp, setShowTierUp] = useState<{ name: string; reward: number } | null>(null);
-  const [barWidth, setBarWidth] = useState(0);
 
   const fireConfetti = useCallback(() => {
     const end = Date.now() + 1500;
@@ -146,17 +130,6 @@ export default function Dashboard() {
     };
     frame();
   }, []);
-
-  // Progress bar animates from 0 on mount: render at 0 first, set the
-  // target width one frame later so the CSS transition plays.
-  useEffect(() => {
-    const r = Number(reputation || 0);
-    const threshold =
-      tierData?.[1]?.status === "success" ? Number(tierData[1].result) : 20;
-    const target = Math.min(100, Math.max(2, (r / threshold) * 100));
-    const raf = requestAnimationFrame(() => setBarWidth(target));
-    return () => cancelAnimationFrame(raf);
-  }, [reputation, tierData]);
 
   // Tier-up detection
   useEffect(() => {
@@ -202,9 +175,6 @@ export default function Dashboard() {
   const tier = getTierInfo(rep);
   const balance = welpBalance ? formatUnits(welpBalance as bigint, 18) : "0";
   const balanceNum = Number(balance);
-
-  const t3Threshold =
-    tierData?.[1]?.status === "success" ? Number(tierData[1].result) : 20;
 
   const showGettingStarted = !profile.hasReviewed && userReviews.length === 0;
 
@@ -252,39 +222,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Tier Progress -- wrapped in a white card so it stays legible
-          on the vivid gradient bg */}
-      <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 px-5 py-4 mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-3 flex-1">
-            <span className="text-lg">{tier.emoji}</span>
-            <span className={`font-semibold ${tier.color}`}>{tier.name}</span>
-            <div
-              role="progressbar"
-              aria-valuenow={rep}
-              aria-valuemin={0}
-              aria-valuemax={t3Threshold}
-              aria-label="Earn XP when others upvote your reviews. Silver at 5 rep, Gold at 20. Upvotes +1, downvotes -1."
-              title="Earn XP when others upvote your reviews. Silver at 5 rep, Gold at 20. Upvotes +1, downvotes -1."
-              className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden"
-            >
-              <div
-                className={`h-full bg-gradient-to-r ${tier.barColor} rounded-full transition-all duration-700 ease-out`}
-                style={{ width: `${barWidth}%` }}
-              />
-            </div>
-            <span className="text-sm text-gray-500">{rep} Reputation / {t3Threshold}</span>
-          </div>
-          <div className="text-sm text-gray-400">
-            {rep >= 20 ? "Elite Reviewer" : rep >= 5 ? "Rising Reviewer" : "New Reviewer"}
-          </div>
-        </div>
-        <p className="mt-2 text-xs text-gray-400">
-          Earn XP when others upvote your reviews.{" "}
-          <Link href="/docs#tiers" className="text-brand-primary/80 hover:text-brand-primary hover:underline">
-            Learn more →
-          </Link>
-        </p>
+      {/* Tier Progress */}
+      <div className="mb-8">
+        <TierProgressCard address={address!} />
       </div>
 
       {/* 4 Stat Cards */}
@@ -305,9 +245,13 @@ export default function Dashboard() {
           <p className="text-sm text-gray-400 mt-1">On-chain reviews</p>
         </div>
 
-        <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
-          <div className="flex items-center gap-2 mb-3">
+        <Link
+          href="/wallet"
+          className="group rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary/30 transition-all duration-200 cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-gray-600">🪙 WELP Balance</span>
+            <span className="text-xs text-gray-300 group-hover:text-brand-primary transition-colors">→</span>
           </div>
           <p className="text-3xl font-bold text-brand-primary"><CountUp value={Math.round(balanceNum)} /></p>
           <p className="text-sm text-gray-400 mt-1">{balanceNum > 0 ? "WELP tokens earned" : "Earn by writing reviews"}</p>
@@ -316,7 +260,7 @@ export default function Dashboard() {
               ≈ ${(balanceNum * welpPriceUsd).toFixed(2)} USD
             </p>
           )}
-        </div>
+        </Link>
 
         <div className="rounded-[1.5rem] bg-white border-2 border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-3">

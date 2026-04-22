@@ -30,6 +30,7 @@ export function Navbar() {
         { href: "/dashboard", label: "Dashboard" },
         { href: "/businesses", label: "Explore Businesses" },
         { href: "/feed", label: "Feed" },
+        { href: "/wallet", label: "Wallet" },
         { href: "/docs", label: "Docs" },
       ]
     : [];

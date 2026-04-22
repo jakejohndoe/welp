@@ -6,10 +6,21 @@ type Props = {
   open: boolean;
   title: string;
   subtitle?: string;
+  step?: number;
+  totalSteps?: number;
+  stepLabel?: string;
 };
 
-export function TxLoadingModal({ open, title, subtitle }: Props) {
+export function TxLoadingModal({
+  open,
+  title,
+  subtitle,
+  step,
+  totalSteps,
+  stepLabel,
+}: Props) {
   if (!open) return null;
+  const showSteps = typeof totalSteps === "number" && typeof step === "number";
   return (
     <div
       role="dialog"
@@ -18,6 +29,12 @@ export function TxLoadingModal({ open, title, subtitle }: Props) {
       className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
     >
       <div className="bg-white rounded-[1.5rem] border-2 border-gray-100 p-10 max-w-sm w-full shadow-xl text-center">
+        {showSteps && (
+          <p className="text-xs font-semibold tracking-wide text-brand-primary mb-3 uppercase">
+            Step {step} of {totalSteps}
+            {stepLabel ? `: ${stepLabel}` : ""}
+          </p>
+        )}
         <div className="flex justify-center mb-6">
           <WelpCoin size={64} animation="flip" />
         </div>

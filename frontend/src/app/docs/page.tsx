@@ -6,6 +6,7 @@ const SECTIONS = [
   { id: "overview", label: "Overview" },
   { id: "how-it-works", label: "How it works" },
   { id: "tiers", label: "Tiers & rewards" },
+  { id: "badge", label: "OG Welper Badge" },
   { id: "design-principles", label: "Design principles" },
   { id: "architecture", label: "Architecture" },
   { id: "security", label: "Security" },
@@ -34,6 +35,11 @@ const CONTRACTS = [
     name: "PriceFeed",
     address: "0xC1a5A807d0c0913BcD8635b345FFf9148EcE9dbb",
     note: "Chainlink ETH/USD, derives WELP/USD",
+  },
+  {
+    name: "OGBadge",
+    address: "0x44e5B877BB1f42Ea1EBE3733682A48F0caf433Da",
+    note: "Soulbound ERC-721, 100-supply founder badge",
   },
 ];
 
@@ -286,6 +292,96 @@ export default function DocsPage() {
               <p className="text-sm text-gray-500">
                 Note: tier thresholds are owner-mutable on RewardsVault for Sepolia. A timelock is planned before any mainnet move. See the <a href="#roadmap" onClick={(e) => handleAnchor("roadmap", e)} className="text-brand-primary hover:underline">roadmap</a>.
               </p>
+              <p className="text-sm text-gray-500">
+                Want something permanent that survives rep swings? See the{" "}
+                <a href="#badge" onClick={(e) => handleAnchor("badge", e)} className="text-brand-primary hover:underline">
+                  OG Welper Badge
+                </a>{" "}
+                -- a soulbound founder NFT for the first 100 reviewers.
+              </p>
+            </div>
+          </section>
+
+          {/* OG Welper Badge */}
+          <section id="badge" className="scroll-mt-28 bg-white/95 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm p-6 sm:p-10">
+            <SectionHeading id="badge" eyebrow="02.5" title="OG Welper Badge">
+              A soulbound ERC-721 for the first 100 reviewers who burn 100 WELP. Proof of early contribution that no one can transfer, buy, or lose to a rep drop.
+            </SectionHeading>
+
+            <div className="space-y-5 text-gray-600 leading-relaxed">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-fredoka)" }}>
+                  What it is
+                </h3>
+                <p className="text-sm">
+                  A membership NFT. Every badge shares the same artwork -- this is a credential, not a collectible. Minting means burning 100 WELP and receiving a non-transferable token that lives on your wallet forever.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-fredoka)" }}>
+                  How to earn one
+                </h3>
+                <ol className="list-decimal ml-5 space-y-1 text-sm">
+                  <li>Accumulate at least 100 WELP by writing reviews the community upvotes.</li>
+                  <li>Head to <a href="/wallet" className="text-brand-primary hover:underline">/wallet</a> and approve the OGBadge contract to spend 100 WELP.</li>
+                  <li>Call <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">mintBadge</code>. The 100 WELP is burned and you receive token #N.</li>
+                </ol>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-fredoka)" }}>
+                  Supply
+                </h3>
+                <p className="text-sm">
+                  Hard-capped at <strong>100</strong>. Once the 100th badge is minted, the contract permanently rejects further mints. No restock, no sequel series -- scarcity is the point.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-fredoka)" }}>
+                  Why soulbound
+                </h3>
+                <p className="text-sm">
+                  The badge represents who showed up first, not who had the most capital at a later date. A transferable version would degrade into a speculation market within hours. A soulbound version stays tied to identity: the wallet that earned and burned keeps the badge, full stop.
+                </p>
+                <p className="text-sm mt-2">
+                  Transfers revert at the <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">_update</code> layer with &quot;Soulbound: non-transferable&quot;. Approvals are permitted for UX, but no approved spender can move the token -- the soulbound check fires regardless of auth.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-fredoka)" }}>
+                  Burn mechanics
+                </h3>
+                <p className="text-sm">
+                  WelpToken&apos;s MVP does not implement ERC20Burnable, so the contract performs the burn by transferring 100 WELP to <code className="text-xs bg-gray-100 px-1 py-0.5 rounded break-all">0x000000000000000000000000000000000000dEaD</code>. Total supply doesn&apos;t change on paper, but the tokens are permanently locked. A WelpToken v2 with Burnable + Permit is on the roadmap; the badge contract stays compatible with either version.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-fredoka)" }}>
+                  Contract
+                </h3>
+                <div className="rounded-xl border border-gray-100 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900">OGBadge</div>
+                    <div className="text-xs text-gray-500 mb-1">Soulbound ERC-721, 100-supply founder badge</div>
+                    <div className="font-mono text-xs text-gray-700 break-all">0x44e5B877BB1f42Ea1EBE3733682A48F0caf433Da</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <CopyButton value="0x44e5B877BB1f42Ea1EBE3733682A48F0caf433Da" />
+                    <a
+                      href={ETHERSCAN("0x44e5B877BB1f42Ea1EBE3733682A48F0caf433Da")}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs px-2 py-1 rounded-md bg-brand-primary hover:bg-brand-hover text-white transition"
+                    >
+                      Etherscan &rarr;
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

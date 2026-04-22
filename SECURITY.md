@@ -1,9 +1,9 @@
 # Welp Security Audit Report
 
-**Date:** 2026-03-27
-**Auditor:** Automated (Slither v0.11.4) + Manual Code Review
-**Contracts:** ReviewRegistry.sol, RewardsVault.sol, WelpToken.sol
-**Solidity:** 0.8.20 | **Framework:** Foundry | **Network:** Sepolia Testnet
+**Date:** 2026-03-27 (OGBadge addendum: 2026-04-22)
+**Auditor:** Automated (Slither v0.11.4 / v0.11.5) + Manual Code Review
+**Contracts:** ReviewRegistry.sol, RewardsVault.sol, WelpToken.sol, PriceFeed.sol, OGBadge.sol
+**Solidity:** 0.8.20 (core), 0.8.24 (OGBadge) | **Framework:** Foundry | **Network:** Sepolia Testnet
 
 ---
 
@@ -13,7 +13,8 @@
 3. [Manual Code Review](#manual-code-review)
 4. [Frontend Security Audit](#frontend-security-audit)
 5. [Full App Flow Audit](#full-app-flow-audit)
-6. [Recommendations](#recommendations)
+6. [OGBadge Addendum (2026-04-22)](#ogbadge-addendum-2026-04-22)
+7. [Recommendations](#recommendations)
 
 ---
 
@@ -239,6 +240,79 @@ Slither analyzed 18 contracts with 100 detectors, producing 27 results. Below ar
 | "$1.00 WLP" reward text | Hardcoded (actual: 100 WELP tokens) |
 | QR code scanning | Not implemented (links to /businesses) |
 | Settings page | Not implemented (links to /feed) |
+
+---
+
+## OGBadge Addendum (2026-04-22)
+
+Standalone soulbound ERC-721 deployed alongside the core stack. Deployed address: `0x44e5B877BB1f42Ea1EBE3733682A48F0caf433Da`. Contract is independent of the main review/rewards path -- no existing contract was modified, upgraded, or redeployed for this release.
+
+### Audit summary
+
+| Severity | Findings in OGBadge source |
+|----------|----------------------------|
+| Critical | 0 |
+| High | 0 |
+| Medium | 0 |
+| Low | 0 |
+| Informational | 0 |
+
+Slither v0.11.5 ran against `src/OGBadge.sol` with `--filter-paths lib/` (excluding OpenZeppelin library code). Result: **0 findings on project code**. The only Slither output not filtered out is pragma-version chatter inherited from OpenZeppelin; none of it affects the patterns used in OGBadge.
+
+### Test coverage
+
+12 unit tests in `contracts/test/OGBadge.t.sol`, 100% green. Coverage includes:
+
+- Constructor state (token reference, owner, metadata, constants)
+- Happy-path mint (approve + mintBadge, balances on both ERC-20 and ERC-721 sides)
+- Revert: mint without WELP approval
+- Revert: second mint from the same address (`"already minted"`)
+- Revert: 101st mint after supply exhausted (`"sold out"`)
+- Soulbound: `transferFrom` between non-zero addresses reverts
+- Soulbound: `safeTransferFrom` reverts
+- Soulbound: approved spender cannot bypass the check
+- `tokenURI` returns the configured URI for existing tokens
+- `tokenURI` reverts on non-existent tokens
+- `setTokenURI` onlyOwner (unauthorized caller reverts with `OwnableUnauthorizedAccount`)
+- `setTokenURI` updates retroactively (all existing tokens reflect the new URI)
+
+All 105 pre-existing tests across the rest of the suite continue to pass. Total: 105 passing, 1 skipped (Sepolia fork test requiring RPC env var).
+
+### Dead-address burn pattern
+
+OGBadge burns WELP by calling `welpToken.transferFrom(msg.sender, 0x...dEaD, 100e18)` rather than invoking a `burn()` function. The deployed WelpToken MVP does not implement `ERC20Burnable`, and redeploying the token would invalidate every existing balance, so a dead-address transfer is the only available path without a token migration.
+
+**Precedent:** This is an industry-standard fallback when `burn()` isn't exposed. Tether (USDT) and the original DAI migration both relied on dead-address transfers for similar reasons. Etherscan and most block explorers annotate transfers to `0x...dEaD` and `0x...0000` as burns, so end-user accounting tools still treat them correctly.
+
+**Effect on total supply:** `WelpToken.totalSupply()` does not decrement -- the tokens remain on the ledger, parked at an address nobody controls. In practice the tokens are permanently removed from circulation because the dead address has no known private key (it's a vanity address with the hex string `dEaD` in the tail; generating a collision is not computationally feasible). For tokenomics accounting, circulating supply should be calculated as `totalSupply() - balanceOf(DEAD)`.
+
+**Roadmap:** WelpToken v2 with `ERC20Burnable` and `ERC20Permit` is planned post-graduation. OGBadge is written so it stays compatible with either version -- if a token migration ever happens, the badge contract continues to work without modification because all it needs is ERC-20 `transferFrom`.
+
+### Soulbound enforcement
+
+Transfer restriction is implemented in the `_update` override:
+
+```solidity
+function _update(address to, uint256 tokenId, address auth)
+    internal
+    override
+    returns (address)
+{
+    address from = _ownerOf(tokenId);
+    require(from == address(0) || to == address(0), "Soulbound: non-transferable");
+    return super._update(to, tokenId, auth);
+}
+```
+
+`_update` is the single choke point OpenZeppelin's ERC-721 v5 uses for every ownership change -- mint, burn, `transferFrom`, `safeTransferFrom`, and any custom transfer logic routed through `_transfer` or `_safeTransfer`. By gating it on "at least one side must be zero", mint (`from == 0`) and burn (`to == 0`) remain possible but peer-to-peer transfer (both non-zero) reverts unconditionally.
+
+Approvals are still allowed for UX (some wallets check `approve` as part of token-inspection flows), but the soulbound check fires regardless of who the caller is. An approved spender calling `transferFrom` reverts with the same message as an unapproved caller, which the test suite verifies.
+
+### Known limitations (by design)
+
+- **No rescue function.** There is no owner-callable path to retrieve WELP sent to `0x...dEaD`. This is intentional -- the burn is the point. Adding a rescue would undermine the scarcity claim and reintroduce trusted-owner risk that the contract is specifically designed to avoid.
+- **No burn entrypoint exposed externally.** Although `_update` permits `to == address(0)` for library compatibility, OGBadge deliberately does not expose a burn function. A user who wants to shed the badge can't. This mirrors other reputation-style soulbound NFTs (e.g. POAP moments).
+- **Shared metadata.** All badges share the same `tokenURI`. The badge is a credential, not a per-token collectible. If the owner calls `setTokenURI` later, every existing token reflects the new URI. Downstream marketplaces that cache metadata per-token may not refresh until a re-index.
 
 ---
 
