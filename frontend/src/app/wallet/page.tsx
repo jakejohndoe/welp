@@ -19,6 +19,7 @@ import {
   OG_BADGE_ABI,
 } from "@/lib/contracts";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -57,6 +58,12 @@ type ActivityRow = {
 const MINT_PRICE = BigInt(100) * BigInt(10) ** BigInt(18);
 const MAX_SUPPLY = 100;
 const ACTIVITY_LIMIT = 50;
+const BADGE_IMAGE_SRC =
+  "https://gateway.pinata.cloud/ipfs/bafybeib4ob5mrimz3gxiaijglg33s3nbompgvtdo3yq4fyyxix7sgclj3u";
+// Alchemy and most Sepolia RPCs cap eth_getLogs at ~10k block range. The
+// core welp contracts were deployed ~175k blocks back, so every getLogs
+// needs to be paginated. 9500 leaves a little headroom under the cap.
+const LOG_CHUNK_BLOCKS = BigInt(9500);
 
 function relativeTime(unixSec: number): string {
   const diff = Math.max(0, Date.now() / 1000 - unixSec);
@@ -66,6 +73,38 @@ function relativeTime(unixSec: number): string {
   if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}d ago`;
   if (diff < 86400 * 365) return `${Math.floor(diff / (86400 * 30))}mo ago`;
   return `${Math.floor(diff / (86400 * 365))}y ago`;
+}
+
+// Sepolia public RPCs and Alchemy's free tier cap eth_getLogs at roughly
+// 10k blocks per request. The welp contracts sit ~175k blocks in the
+// past, so every query here has to be paginated. Concatenates results
+// across chunks; any chunk that throws bubbles up and is caught by the
+// per-stream handler in the activity effect.
+async function getLogsChunked(
+  client: NonNullable<ReturnType<typeof usePublicClient>>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: any
+): Promise<any[]> {
+  const { fromBlock, toBlock, ...rest } = params;
+  const from: bigint = fromBlock as bigint;
+  const to: bigint = toBlock as bigint;
+  if (to < from) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const results: any[] = [];
+  let cursor = from;
+  while (cursor <= to) {
+    const end = cursor + LOG_CHUNK_BLOCKS - BigInt(1);
+    const chunkEnd = end > to ? to : end;
+    const logs = await client.getLogs({
+      ...rest,
+      fromBlock: cursor,
+      toBlock: chunkEnd,
+    });
+    results.push(...logs);
+    cursor = chunkEnd + BigInt(1);
+  }
+  return results;
 }
 
 function etherscanTx(hash: string) {
@@ -152,18 +191,19 @@ export default function WalletPage() {
     let cancelled = false;
     (async () => {
       try {
-        const logs = await publicClient.getLogs({
+        const latest = await publicClient.getBlockNumber();
+        const logs = await getLogsChunked(publicClient, {
           address: ADDRESSES.ReviewRegistry,
           event: parseAbiItem(
             "event CheckedIn(uint256 indexed businessId, address indexed user, uint256 timestamp)"
           ),
           args: { user: address },
           fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
-          toBlock: "latest",
+          toBlock: latest,
         });
         if (!cancelled) setCheckInCount(logs.length);
       } catch (err) {
-        console.error("check-in log query failed", err);
+        console.error("[wallet] check-in log query failed:", err);
         if (!cancelled) setCheckInCount(0);
       }
     })();
@@ -206,14 +246,15 @@ export default function WalletPage() {
     let cancelled = false;
     (async () => {
       try {
-        const logs = await publicClient.getLogs({
+        const latest = await publicClient.getBlockNumber();
+        const logs = await getLogsChunked(publicClient, {
           address: ADDRESSES.OGBadge,
           event: parseAbiItem(
             "event BadgeMinted(address indexed to, uint256 indexed tokenId)"
           ),
           args: { to: address },
           fromBlock: DEPLOY_BLOCKS.OGBadge,
-          toBlock: "latest",
+          toBlock: latest,
         });
         if (cancelled) return;
         const last = logs[logs.length - 1];
@@ -221,7 +262,7 @@ export default function WalletPage() {
           setOwnedTokenId(last.args.tokenId as bigint);
         }
       } catch (err) {
-        console.error("badge mint log query failed", err);
+        console.error("[wallet] badge mint log query failed:", err);
       }
     })();
     return () => {
@@ -302,70 +343,101 @@ export default function WalletPage() {
 
     (async () => {
       try {
+        // Pin a toBlock for this run so every chunked stream walks the
+        // same window. Otherwise a stream scheduled later could overshoot
+        // and hit "toBlock > fromBlock" edge cases.
+        const latestBlock = await publicClient.getBlockNumber();
+
+        // Each stream has its own try/catch so one failing RPC call
+        // can't blank the whole feed. Streams also get paginated via
+        // getLogsChunked because Sepolia RPCs cap eth_getLogs ranges.
+        const fetchStream = async <T,>(
+          name: string,
+          fn: () => Promise<T[]>
+        ): Promise<T[]> => {
+          try {
+            return await fn();
+          } catch (err) {
+            console.error(`[wallet] ${name} log query failed:`, err);
+            return [];
+          }
+        };
+
         const [
           reviewLogs,
           checkInLogs,
           voteLogs,
           welpInLogs,
           badgeLogs,
+          burnLogs,
         ] = await Promise.all([
-          publicClient.getLogs({
-            address: ADDRESSES.ReviewRegistry,
-            event: parseAbiItem(
-              "event ReviewSubmitted(uint256 indexed reviewId, uint256 indexed businessId, address indexed reviewer, uint8 rating, string ipfsHash, uint256 timestamp)"
-            ),
-            args: { reviewer: address },
-            fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
-            toBlock: "latest",
-          }),
-          publicClient.getLogs({
-            address: ADDRESSES.ReviewRegistry,
-            event: parseAbiItem(
-              "event CheckedIn(uint256 indexed businessId, address indexed user, uint256 timestamp)"
-            ),
-            args: { user: address },
-            fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
-            toBlock: "latest",
-          }),
-          publicClient.getLogs({
-            address: ADDRESSES.ReviewRegistry,
-            event: parseAbiItem(
-              "event VoteRecorded(uint256 indexed reviewId, address indexed voter, bool isUpvote)"
-            ),
-            args: { voter: address },
-            fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
-            toBlock: "latest",
-          }),
-          publicClient.getLogs({
-            address: ADDRESSES.WelpToken,
-            event: parseAbiItem(
-              "event Transfer(address indexed from, address indexed to, uint256 value)"
-            ),
-            args: { from: ADDRESSES.RewardsVault, to: address },
-            fromBlock: DEPLOY_BLOCKS.WelpToken,
-            toBlock: "latest",
-          }),
-          publicClient.getLogs({
-            address: ADDRESSES.OGBadge,
-            event: parseAbiItem(
-              "event BadgeMinted(address indexed to, uint256 indexed tokenId)"
-            ),
-            args: { to: address },
-            fromBlock: DEPLOY_BLOCKS.OGBadge,
-            toBlock: "latest",
-          }),
-        ]);
-
-        // Separate burn lookup: Transfer from user to DEAD is the badge burn.
-        const burnLogs = await publicClient.getLogs({
-          address: ADDRESSES.WelpToken,
-          event: parseAbiItem(
-            "event Transfer(address indexed from, address indexed to, uint256 value)"
+          fetchStream("reviews", () =>
+            getLogsChunked(publicClient, {
+              address: ADDRESSES.ReviewRegistry,
+              event: parseAbiItem(
+                "event ReviewSubmitted(uint256 indexed reviewId, uint256 indexed businessId, address indexed reviewer, uint8 rating, string ipfsHash, uint256 timestamp)"
+              ),
+              args: { reviewer: address },
+              fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
+              toBlock: latestBlock,
+            })
           ),
-          args: { from: address, to: DEAD_ADDRESS },
-          fromBlock: DEPLOY_BLOCKS.WelpToken,
-          toBlock: "latest",
-        });
+          fetchStream("check-ins", () =>
+            getLogsChunked(publicClient, {
+              address: ADDRESSES.ReviewRegistry,
+              event: parseAbiItem(
+                "event CheckedIn(uint256 indexed businessId, address indexed user, uint256 timestamp)"
+              ),
+              args: { user: address },
+              fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
+              toBlock: latestBlock,
+            })
+          ),
+          fetchStream("votes", () =>
+            getLogsChunked(publicClient, {
+              address: ADDRESSES.ReviewRegistry,
+              event: parseAbiItem(
+                "event VoteRecorded(uint256 indexed reviewId, address indexed voter, bool isUpvote)"
+              ),
+              args: { voter: address },
+              fromBlock: DEPLOY_BLOCKS.ReviewRegistry,
+              toBlock: latestBlock,
+            })
+          ),
+          fetchStream("welp-in", () =>
+            getLogsChunked(publicClient, {
+              address: ADDRESSES.WelpToken,
+              event: parseAbiItem(
+                "event Transfer(address indexed from, address indexed to, uint256 value)"
+              ),
+              args: { from: ADDRESSES.RewardsVault, to: address },
+              fromBlock: DEPLOY_BLOCKS.WelpToken,
+              toBlock: latestBlock,
+            })
+          ),
+          fetchStream("badge-mints", () =>
+            getLogsChunked(publicClient, {
+              address: ADDRESSES.OGBadge,
+              event: parseAbiItem(
+                "event BadgeMinted(address indexed to, uint256 indexed tokenId)"
+              ),
+              args: { to: address },
+              fromBlock: DEPLOY_BLOCKS.OGBadge,
+              toBlock: latestBlock,
+            })
+          ),
+          fetchStream("welp-burn", () =>
+            getLogsChunked(publicClient, {
+              address: ADDRESSES.WelpToken,
+              event: parseAbiItem(
+                "event Transfer(address indexed from, address indexed to, uint256 value)"
+              ),
+              args: { from: address, to: DEAD_ADDRESS },
+              fromBlock: DEPLOY_BLOCKS.WelpToken,
+              toBlock: latestBlock,
+            })
+          ),
+        ]);
 
         // Block-number -> timestamp cache, so we don't refetch the same block
         const uniqueBlocks = new Set<bigint>();
@@ -758,23 +830,25 @@ function OGBadgeCard(props: BadgeCardProps) {
   const mintWaiting =
     mintStep === 2 && (mintPending || (mintHash !== undefined && !mintConfirmed));
 
+  const locked = !ownsBadge && (!hasEnoughWelp || soldOut);
   const badgeImage = (
     <div
-      className={`relative w-28 h-28 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+      className={`relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden flex-shrink-0 bg-white ${
         ownsBadge
-          ? "bg-gradient-to-br from-purple-100 via-blue-50 to-amber-50 ring-2 ring-brand-primary/40 shadow-[0_0_20px_-4px_rgba(74,144,226,0.5)]"
+          ? "ring-2 ring-brand-primary/50 shadow-[0_0_28px_-4px_rgba(74,144,226,0.55)]"
           : hasEnoughWelp && !soldOut
-          ? "bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-gray-100"
-          : "bg-gray-100 border-2 border-gray-200 opacity-60"
+          ? "border-2 border-gray-100"
+          : "border-2 border-gray-200"
       }`}
     >
-      <Award
-        className={`h-14 w-14 ${
-          ownsBadge
-            ? "text-brand-primary"
-            : hasEnoughWelp && !soldOut
-            ? "text-brand-primary/80"
-            : "text-gray-400"
+      <Image
+        src={BADGE_IMAGE_SRC}
+        alt="OG Welper Badge"
+        width={160}
+        height={160}
+        priority
+        className={`w-full h-full object-cover ${
+          locked ? "grayscale opacity-60" : ""
         }`}
       />
     </div>
