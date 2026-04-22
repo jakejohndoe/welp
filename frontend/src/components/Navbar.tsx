@@ -38,8 +38,8 @@ export function Navbar() {
         { href: "/businesses", label: "Explore Businesses" },
         { href: "/feed", label: "Feed" },
         { href: "/wallet", label: "Wallet" },
-        { href: "/minigame", label: "Coin Drop", icon: <WelpCoin size={22} animation="none" /> },
         { href: "/docs", label: "Docs" },
+        { href: "/minigame", label: "Coin Drop", icon: <WelpCoin size={22} animation="none" /> },
       ]
     : [];
 

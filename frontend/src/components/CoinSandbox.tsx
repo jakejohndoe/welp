@@ -7,7 +7,7 @@ const COIN_SVG = WELP_COIN_SVG;
 
 const EVADE_RADIUS = 55;
 const EVADE_STRENGTH = 1.5;
-const BOMB_ATTRACT_MULT = -0.5;
+const BOMB_ATTRACT_MULT = -2.0;
 const RESPAWN_DELAY = 6000;
 const BOMB_SPAWN_RATE = 0.08;
 
