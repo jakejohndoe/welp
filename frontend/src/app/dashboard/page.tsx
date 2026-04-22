@@ -222,6 +222,27 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Coin Drop minigame promo */}
+      <div className="rounded-[1.5rem] bg-gradient-to-r from-blue-50 to-amber-50 border-2 border-blue-100 p-6 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-brand-yellow flex items-center justify-center flex-shrink-0">
+            <span className="text-xl">🪙</span>
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-gray-900">Coin Drop</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Earn 5-10 WELP every hour. Pop floating coins to claim.
+            </p>
+          </div>
+          <Link
+            href="/minigame"
+            className="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white text-sm font-semibold transition-all duration-300 flex-shrink-0"
+          >
+            Play Now
+          </Link>
+        </div>
+      </div>
+
       {/* Tier Progress */}
       <div className="mb-8">
         <TierProgressCard address={address!} />

@@ -1,14 +1,16 @@
 import { type Address } from "viem";
 
-// Sepolia deployment -- 2026-03-27 (OGBadge 2026-04-22)
+// Sepolia deployment -- 2026-03-27 (OGBadge 2026-04-22, CoinGame 2026-04-22)
 export const ADDRESSES = {
   WelpToken: "0xDF76BdF11812E93f31BDF6363FE3CD1fE4078A52" as Address,
   RewardsVault: "0xaCd596F9546A32469E4d7120593e7b54e119351B" as Address,
   ReviewRegistry: "0xed08ee493161Fb3eA1Fb8935271ed6E85fdD8C0C" as Address,
   OGBadge: "0x44e5B877BB1f42Ea1EBE3733682A48F0caf433Da" as Address,
+  CoinGame: "0x0fc069748d52eA57F1AE78F1700A817b22411B30" as Address,
 } as const;
 
 export const OG_BADGE_ADDRESS = ADDRESSES.OGBadge;
+export const COIN_GAME_ADDRESS = ADDRESSES.CoinGame;
 
 // Deploy block numbers -- used as fromBlock floor for getLogs queries.
 // Querying from genesis on Sepolia is rejected by most RPCs.
@@ -19,6 +21,7 @@ export const DEPLOY_BLOCKS = {
   ReviewRegistry: BigInt(10535150),
   PriceFeed: BigInt(10645575),
   OGBadge: BigInt(10711704),
+  CoinGame: BigInt(10712331),
 } as const;
 
 // Dead address used for the OGBadge burn-to-mint pattern. WelpToken MVP
@@ -354,4 +357,68 @@ export const REWARDS_VAULT_ABI = [
     outputs: [{ name: "", type: "uint256" }],
     stateMutability: "view",
   },
+] as const;
+
+// CoinGame sidecar -- pre-funded claim contract, no minter role needed.
+export const COIN_GAME_ABI = [
+  {
+    type: "function",
+    name: "claim",
+    inputs: [{ name: "amount", type: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "cooldownRemaining",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "treasuryBalance",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "lastClaim",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "MIN_CLAIM",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "MAX_CLAIM",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "COOLDOWN",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "Claimed",
+    inputs: [
+      { name: "user", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "timestamp", type: "uint256", indexed: false },
+    ],
+  },
+  { type: "error", name: "AmountOutOfRange", inputs: [] },
+  { type: "error", name: "Cooldown", inputs: [] },
 ] as const;
