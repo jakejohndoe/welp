@@ -5,8 +5,15 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { WelpPriceBadge } from "./WelpPriceBadge";
+import { WelpCoin } from "./WelpCoin";
+
+type NavLink = {
+  href: string;
+  label: string;
+  icon?: ReactNode;
+};
 
 export function Navbar() {
   const { address, isConnected } = useAccount();
@@ -25,12 +32,13 @@ export function Navbar() {
   // Don't show full nav on welcome/onboarding pages
   const isAuthPage = pathname === "/welcome" || pathname === "/onboarding";
 
-  const navLinks = isConnected
+  const navLinks: NavLink[] = isConnected
     ? [
         { href: "/dashboard", label: "Dashboard" },
         { href: "/businesses", label: "Explore Businesses" },
         { href: "/feed", label: "Feed" },
         { href: "/wallet", label: "Wallet" },
+        { href: "/minigame", label: "Coin Drop", icon: <WelpCoin size={18} animation="none" /> },
         { href: "/docs", label: "Docs" },
       ]
     : [];
@@ -71,13 +79,14 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center gap-1.5 ${
                         isActive
                           ? "text-brand-primary bg-blue-50"
                           : "text-gray-700 hover:text-brand-primary hover:bg-blue-50"
                       }`}
                     >
-                      {link.label}
+                      {link.icon}
+                      <span>{link.label}</span>
                     </Link>
                   );
                 })}

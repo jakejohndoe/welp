@@ -8,9 +8,13 @@ const COIN_SVG = WELP_COIN_SVG;
 const EVADE_RADIUS = 55;
 const EVADE_STRENGTH = 1.5;
 const RESPAWN_DELAY = 6000;
+const BOMB_SPAWN_RATE = 0.08;
+
+export type CoinKind = "coin" | "bomb";
 
 interface CoinState {
   id: number;
+  kind: CoinKind;
   x: number;
   y: number;
   baseX: number;
@@ -33,7 +37,7 @@ interface CoinState {
   dead: boolean;
 }
 
-function createCoin(id: number, w: number, h: number, fromEdge = false): CoinState {
+function createCoin(id: number, w: number, h: number, fromEdge = false, allowBombs = false): CoinState {
   let x: number, y: number;
   if (fromEdge) {
     const edge = Math.floor(Math.random() * 4);
@@ -45,8 +49,10 @@ function createCoin(id: number, w: number, h: number, fromEdge = false): CoinSta
     x = Math.random() * w;
     y = Math.random() * h;
   }
+  const kind: CoinKind = allowBombs && Math.random() < BOMB_SPAWN_RATE ? "bomb" : "coin";
   return {
     id,
+    kind,
     x, y,
     baseX: x, baseY: y,
     vx: 0, vy: 0,
@@ -71,7 +77,7 @@ export interface CoinSandboxProps {
   width?: number | string;
   height?: number | string;
   count?: number;
-  onPop?: (coinId: number) => void;
+  onPop?: (coinId: number, kind: CoinKind) => void;
   paused?: boolean;
   /**
    * When true, the sandbox renders its own width/height wrapper with
@@ -81,6 +87,17 @@ export interface CoinSandboxProps {
    * full viewport.
    */
   bounded?: boolean;
+  /**
+   * Multiplier applied to each coin's rendered opacity (clamped to 1).
+   * Default 1 preserves original welcome-page behavior. /minigame passes
+   * 2.5 to make coins pop visually for the clicking game.
+   */
+  opacityBoost?: number;
+  /**
+   * When true, spawned coins have a chance of being bombs (8%).
+   * Default false keeps the welcome page bomb-free.
+   */
+  enableBombs?: boolean;
 }
 
 /**
@@ -96,6 +113,8 @@ export function CoinSandbox({
   onPop,
   paused = false,
   bounded = false,
+  opacityBoost = 1,
+  enableBombs = false,
 }: CoinSandboxProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const coinsRef = useRef<CoinState[]>([]);
@@ -107,9 +126,13 @@ export function CoinSandbox({
   const burstsRef = useRef<HTMLDivElement[]>([]);
   const pausedRef = useRef(paused);
   const onPopRef = useRef(onPop);
+  const opacityBoostRef = useRef(opacityBoost);
+  const enableBombsRef = useRef(enableBombs);
 
   useEffect(() => { pausedRef.current = paused; }, [paused]);
   useEffect(() => { onPopRef.current = onPop; }, [onPop]);
+  useEffect(() => { opacityBoostRef.current = opacityBoost; }, [opacityBoost]);
+  useEffect(() => { enableBombsRef.current = enableBombs; }, [enableBombs]);
 
   useEffect(() => {
     const _container = containerRef.current;
@@ -118,11 +141,17 @@ export function CoinSandbox({
     const w = container.offsetWidth;
     const h = container.offsetHeight;
 
-    coinsRef.current = Array.from({ length: count }, (_, i) => createCoin(i, w, h));
+    coinsRef.current = Array.from({ length: count }, (_, i) =>
+      createCoin(i, w, h, false, enableBombsRef.current)
+    );
     startTimeRef.current = performance.now();
     nextIdRef.current = count;
 
     const coinEls = new Map<number, HTMLDivElement>();
+
+    function renderOpacity(raw: number): number {
+      return Math.min(1, Math.max(0, raw) * opacityBoostRef.current);
+    }
 
     function ensureDom(coin: CoinState) {
       if (coinEls.has(coin.id)) return coinEls.get(coin.id)!;
@@ -133,11 +162,19 @@ export function CoinSandbox({
       el.style.cursor = "pointer";
       el.style.pointerEvents = "auto";
       el.style.willChange = "transform, opacity";
-      el.innerHTML = COIN_SVG;
-      const svg = el.querySelector("svg")!;
-      svg.style.width = "100%";
-      svg.style.height = "100%";
-      svg.style.animation = `spin-coin ${coin.spinDuration}s linear infinite ${coin.spinReverse ? "reverse" : "normal"}`;
+      if (coin.kind === "bomb") {
+        el.style.fontSize = `${coin.size}px`;
+        el.style.lineHeight = `${coin.size}px`;
+        el.style.textAlign = "center";
+        el.style.userSelect = "none";
+        el.textContent = "\u{1F4A3}";
+      } else {
+        el.innerHTML = COIN_SVG;
+        const svg = el.querySelector("svg")!;
+        svg.style.width = "100%";
+        svg.style.height = "100%";
+        svg.style.animation = `spin-coin ${coin.spinDuration}s linear infinite ${coin.spinReverse ? "reverse" : "normal"}`;
+      }
       el.addEventListener("click", () => popCoin(coin.id));
       container.appendChild(el);
       coinEls.set(coin.id, el);
@@ -147,20 +184,21 @@ export function CoinSandbox({
     function popCoin(id: number) {
       const coin = coinsRef.current.find((c) => c.id === id);
       if (!coin || coin.popping || coin.dead) return;
-      onPopRef.current?.(id);
+      onPopRef.current?.(id, coin.kind);
       coin.popping = true;
       coin.popScale = 1;
       coin.popOpacity = coin.opacity;
 
-      spawnBurst(coin.x, coin.y);
+      spawnBurst(coin.x, coin.y, coin.kind);
 
       if (!pausedRef.current) {
         respawnQueue.current.push({ time: performance.now() + RESPAWN_DELAY });
       }
     }
 
-    function spawnBurst(cx: number, cy: number) {
-      const burstCount = 5;
+    function spawnBurst(cx: number, cy: number, kind: CoinKind) {
+      const color = kind === "bomb" ? "#EF4444" : "#F5A623";
+      const burstCount = kind === "bomb" ? 8 : 5;
       for (let i = 0; i < burstCount; i++) {
         const angle = (Math.PI * 2 * i) / burstCount + Math.random() * 0.3;
         const dist = 30 + Math.random() * 20;
@@ -169,7 +207,7 @@ export function CoinSandbox({
         dot.style.width = "4px";
         dot.style.height = "4px";
         dot.style.borderRadius = "50%";
-        dot.style.background = "#F5A623";
+        dot.style.background = color;
         dot.style.left = `${cx}px`;
         dot.style.top = `${cy}px`;
         dot.style.pointerEvents = "none";
@@ -194,7 +232,7 @@ export function CoinSandbox({
       ring.style.width = "40px";
       ring.style.height = "40px";
       ring.style.borderRadius = "50%";
-      ring.style.border = "2px solid #F5A623";
+      ring.style.border = `2px solid ${color}`;
       ring.style.pointerEvents = "none";
       ring.style.willChange = "transform, opacity";
       ring.style.transition = "transform 0.35s ease-out, opacity 0.35s ease-out";
@@ -232,7 +270,7 @@ export function CoinSandbox({
         while (respawnQueue.current.length > 0 && respawnQueue.current[0].time <= now) {
           respawnQueue.current.shift();
           const newId = nextIdRef.current++;
-          coinsRef.current.push(createCoin(newId, w, h, true));
+          coinsRef.current.push(createCoin(newId, w, h, true, enableBombsRef.current));
         }
       }
 
@@ -255,7 +293,7 @@ export function CoinSandbox({
           }
           const el = ensureDom(c);
           el.style.transform = `translate(${c.x - c.size / 2}px, ${c.y - c.size / 2}px) scale(${c.popScale})`;
-          el.style.opacity = `${Math.max(0, c.popOpacity)}`;
+          el.style.opacity = `${renderOpacity(c.popOpacity)}`;
           continue;
         }
 
@@ -287,7 +325,7 @@ export function CoinSandbox({
 
         const el = ensureDom(c);
         el.style.transform = `translate(${c.x - c.size / 2}px, ${c.y - c.size / 2}px)`;
-        el.style.opacity = `${c.opacity}`;
+        el.style.opacity = `${renderOpacity(c.opacity)}`;
       }
 
       frameRef.current = requestAnimationFrame(tick);

@@ -13,7 +13,7 @@ import {
 } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { ADDRESSES, COIN_GAME_ABI } from "@/lib/contracts";
-import { CoinSandbox } from "@/components/CoinSandbox";
+import { CoinSandbox, type CoinKind } from "@/components/CoinSandbox";
 import { TxLoadingModal } from "@/components/TxLoadingModal";
 import { WelpCoin } from "@/components/WelpCoin";
 
@@ -33,18 +33,19 @@ export default function MinigamePage() {
   const { connect, isPending: isConnecting } = useConnect();
 
   const [count, setCount] = useState(0);
-  // Use a Set so repeated clicks on the same coin (shouldn't happen since
-  // coins pop once) can't double-count. id is the coin id from CoinSandbox.
-  const [poppedIds, setPoppedIds] = useState<Set<number>>(new Set());
+  const [showFlash, setShowFlash] = useState(false);
+  const [showBombToast, setShowBombToast] = useState(false);
 
-  const handlePop = useCallback((id: number) => {
-    setPoppedIds((prev) => {
-      if (prev.has(id) || prev.size >= MAX_CLAIM) return prev;
-      const next = new Set(prev);
-      next.add(id);
-      setCount(next.size);
-      return next;
-    });
+  const handlePop = useCallback((_id: number, kind: CoinKind) => {
+    if (kind === "bomb") {
+      setCount(0);
+      setShowFlash(true);
+      setTimeout(() => setShowFlash(false), 300);
+      setShowBombToast(true);
+      setTimeout(() => setShowBombToast(false), 3000);
+    } else {
+      setCount((c) => Math.min(c + 1, MAX_CLAIM));
+    }
   }, []);
 
   // ──────────────── Reads ────────────────
@@ -106,7 +107,6 @@ export default function MinigamePage() {
     if (!isSuccess) return;
     toast.success(`Claimed ${count} WELP!`);
     setCount(0);
-    setPoppedIds(new Set());
     refetchCooldown();
     refetchTreasury();
     reset();
@@ -128,7 +128,7 @@ export default function MinigamePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Coin Drop</h1>
         <p className="text-gray-500 mt-1">
-          Pop coins. Hit 5 to claim. Max 10 per hour.
+          Pop coins. Hit 5 to claim. Max 10 per hour. Watch out for bombs.
         </p>
       </div>
 
@@ -161,14 +161,21 @@ export default function MinigamePage() {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sandbox */}
           <div className="flex-1 rounded-[1.5rem] bg-white border-2 border-gray-100 p-4 overflow-hidden">
-            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-amber-50">
+            <div className="relative rounded-xl bg-gradient-to-b from-blue-50 to-amber-50 shadow-inner overflow-hidden">
               <CoinSandbox
                 bounded
                 width="100%"
                 height={500}
                 count={20}
                 onPop={handlePop}
-                paused={count >= MAX_CLAIM}
+                paused={count >= MAX_CLAIM || onCooldown}
+                opacityBoost={2.5}
+                enableBombs
+              />
+              <div
+                className={`absolute inset-0 bg-red-500/30 pointer-events-none transition-opacity duration-300 ${
+                  showFlash ? "opacity-100" : "opacity-0"
+                }`}
               />
             </div>
             <p className="text-xs text-gray-400 mt-3 text-center">
@@ -225,6 +232,12 @@ export default function MinigamePage() {
               ← Back to dashboard
             </Link>
           </aside>
+        </div>
+      )}
+
+      {showBombToast && (
+        <div className="fixed top-20 right-4 z-[90] px-4 py-3 rounded-lg bg-red-500 text-white font-semibold shadow-lg">
+          💥 OOPS! Score reset!
         </div>
       )}
 
