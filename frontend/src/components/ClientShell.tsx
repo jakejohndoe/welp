@@ -20,17 +20,8 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
       {showGradient && <PageBackground />}
       <Navbar />
       <main className="flex-1">{children}</main>
-      {/* Soft fade from the gradient canvas into the translucent footer
-          so the transition breathes instead of hard-cutting. The band's
-          bottom color matches the footer bg so the seam disappears. */}
-      {showGradient && (
-        <div
-          aria-hidden
-          className="pointer-events-none h-20 bg-gradient-to-b from-transparent to-white/85"
-        />
-      )}
       {!isWelcome && (
-        <footer className={`${showGradient ? "bg-white/85 backdrop-blur-md" : "border-t border-gray-200"} py-6`}>
+        <footer className={`${showGradient ? "bg-transparent" : "border-t border-gray-200"} py-6`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
