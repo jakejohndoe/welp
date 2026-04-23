@@ -8,6 +8,7 @@ const COIN_SVG = WELP_COIN_SVG;
 const EVADE_RADIUS = 55;
 const EVADE_STRENGTH = 1.5;
 const BOMB_ATTRACT_MULT = -2.0;
+const BOMB_CHASE_RADIUS_MULT = 3;
 const RESPAWN_DELAY = 6000;
 const BOMB_SPAWN_RATE = 0.08;
 
@@ -310,12 +311,15 @@ export function CoinSandbox({
           const dx = targetX - mx;
           const dy = targetY - my;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < EVADE_RADIUS && dist > 0) {
+          const effectiveRadius = c.kind === "bomb"
+            ? EVADE_RADIUS * BOMB_CHASE_RADIUS_MULT
+            : EVADE_RADIUS;
+          if (dist < effectiveRadius && dist > 0) {
             if (c.evadeFrozen === 0) {
               c.evadeFrozen = now;
             }
             if (now - c.evadeFrozen > 100) {
-              const force = (1 - dist / EVADE_RADIUS) * EVADE_STRENGTH;
+              const force = (1 - dist / effectiveRadius) * EVADE_STRENGTH;
               const strengthMult = c.kind === "bomb" ? BOMB_ATTRACT_MULT : 1;
               targetX += (dx / dist) * force * 15 * strengthMult;
               targetY += (dy / dist) * force * 15 * strengthMult;
