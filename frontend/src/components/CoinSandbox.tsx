@@ -168,6 +168,9 @@ export function CoinSandbox({
         el.style.lineHeight = `${coin.size}px`;
         el.style.textAlign = "center";
         el.style.userSelect = "none";
+        // Body font (Nunito) is Latin-subset only; explicit emoji stack
+        // ensures 💣 renders instead of falling through to a missing glyph.
+        el.style.fontFamily = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji, sans-serif';
         el.textContent = "\u{1F4A3}";
       } else {
         el.innerHTML = COIN_SVG;
